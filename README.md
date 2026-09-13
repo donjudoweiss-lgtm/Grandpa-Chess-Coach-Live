@@ -1,1 +1,0 @@
-# grandpa-chess-coach-development
