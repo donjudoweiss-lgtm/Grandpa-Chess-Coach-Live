@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grandpa Chess Coach</title>
+<style>
+  :root{
+    --parchment:#f4ecd8;
+    --wood-dark:#3b2a1e;
+    --wood-mid:#7a5230;
+    --forest:#2f5d3a;
+    --forest-deep:#1e3d26;
+    --gold:#c9a13b;
+    --cream-text:#f4ecd8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--parchment);
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(122,82,48,0.06) 0, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(47,93,58,0.07) 0, transparent 45%);
+    color:var(--wood-dark);
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    line-height:1.5;
+  }
+  header{
+    padding:56px 24px 40px;
+    text-align:center;
+    border-bottom:3px solid var(--wood-mid);
+  }
+  .crest{
+    font-size:44px;
+    line-height:1;
+    margin-bottom:14px;
+    letter-spacing:2px;
+  }
+  h1{
+    font-size:clamp(32px,6vw,52px);
+    margin:0 0 10px;
+    color:var(--forest-deep);
+    font-weight:700;
+    letter-spacing:0.5px;
+  }
+  .tagline{
+    font-style:italic;
+    font-size:18px;
+    color:var(--wood-mid);
+    max-width:520px;
+    margin:0 auto;
+  }
+  main{
+    max-width:760px;
+    margin:0 auto;
+    padding:40px 24px 80px;
+  }
+  .lede{
+    font-size:19px;
+    max-width:600px;
+    margin:0 auto 36px;
+    text-align:center;
+    color:var(--wood-dark);
+  }
+  .frame-wrap{
+    border:10px solid var(--wood-mid);
+    border-radius:4px;
+    box-shadow:0 18px 40px rgba(59,42,30,0.28);
+    overflow:hidden;
+    background:#111;
+    aspect-ratio: 9 / 16;
+    max-width:480px;
+    margin:0 auto 28px;
+  }
+  .frame-wrap iframe{
+    width:100%;
+    height:100%;
+    border:0;
+    display:block;
+  }
+  .fallback{
+    text-align:center;
+    padding:52px 24px;
+    color:var(--cream-text);
+    background:var(--forest-deep);
+  }
+  .fallback p{
+    max-width:420px;
+    margin:0 auto 22px;
+    font-size:16px;
+    opacity:0.9;
+  }
+  .open-btn{
+    display:inline-block;
+    background:var(--gold);
+    color:var(--wood-dark);
+    font-family: 'Trebuchet MS', sans-serif;
+    font-weight:700;
+    font-size:18px;
+    text-decoration:none;
+    padding:16px 34px;
+    border-radius:6px;
+    border:3px solid var(--wood-dark);
+  }
+  .open-btn:active{ transform: translateY(1px); }
+  .features{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin:44px 0 0;
+    font-family: 'Trebuchet MS', sans-serif;
+  }
+  @media (max-width:480px){ .features{grid-template-columns:1fr;} }
+  .feature{
+    background:#fff8ea;
+    border:1px solid var(--wood-mid);
+    border-radius:6px;
+    padding:16px 18px;
+  }
+  .feature h3{
+    margin:0 0 6px;
+    font-size:15px;
+    color:var(--forest);
+    font-family: Georgia, serif;
+  }
+  .feature p{
+    margin:0;
+    font-size:14px;
+    color:var(--wood-dark);
+  }
+  footer{
+    text-align:center;
+    padding:30px 20px 50px;
+    font-family:'Trebuchet MS', sans-serif;
+    font-size:13px;
+    color:var(--wood-mid);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="crest">&#9822;&#9819;&#9821;</div>
+  <h1>Grandpa Chess Coach</h1>
+  <p class="tagline">We do not move pieces, we move ideas.</p>
+</header>
+
+<main>
+  <p class="lede">A patient, warm-voiced chess coach for kids and adults just starting out &mdash; a real board, real openings, and real conversation, one square at a time.</p>
+
+  <!--
+    This button takes visitors straight to the live, fully-working app.
+    If you ever republish the app and get a new link, just change the href below.
+  -->
+  <div class="fallback" style="border-radius:8px;">
+    <p>Tap below to start a lesson &mdash; opens the full app, voice and all.</p>
+    <a class="open-btn" href="https://claude.ai/artifact/PPgLBBDUqGM6HXYwKazyKb" target="_blank" rel="noopener">&#9812; Open Grandpa Chess Coach</a>
+    <div style="margin-top:18px">
+      <button id="shareBtn" onclick="shareThisPage()" style="background:transparent;color:var(--cream-text);border:2px solid var(--cream-text);border-radius:6px;padding:10px 22px;font-family:'Trebuchet MS',sans-serif;font-size:15px;cursor:pointer">Share This Page</button>
+    </div>
+  </div>
+  <script>
+    function shareThisPage(){
+      const shareData={title:'Grandpa Chess Coach',text:'A patient, warm-voiced chess coach for kids and adults just starting out.',url:window.location.href};
+      if(navigator.share){
+        navigator.share(shareData).catch(()=>{});
+      } else if(navigator.clipboard){
+        navigator.clipboard.writeText(window.location.href).then(()=>{
+          const btn=document.getElementById('shareBtn');
+          const original=btn.textContent;
+          btn.textContent='Link Copied!';
+          setTimeout(()=>{btn.textContent=original;},2000);
+        });
+      } else {
+        alert('Copy this link to share: '+window.location.href);
+      }
+    }
+  </script>
+
+  <div class="features">
+    <div class="feature">
+      <h3>Learn the pieces</h3>
+      <p>Real diagrams for how every piece moves, explained out loud.</p>
+    </div>
+    <div class="feature">
+      <h3>66 openings</h3>
+      <p>Tap an opening, see it played out on the board, hear why it works.</p>
+    </div>
+    <div class="feature">
+      <h3>A real coach</h3>
+      <p>Set up any position and get an honest, encouraging look at the board.</p>
+    </div>
+    <div class="feature">
+      <h3>In your own voice</h3>
+      <p>Record yourself, and hear it play back during the lesson.</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Grandpa Chess Coach &mdash; built one lesson at a time.
+</footer>
+
+</body>
+</html>
