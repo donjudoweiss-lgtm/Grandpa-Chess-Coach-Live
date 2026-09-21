@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grandpa Chess Coach</title>
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAGPElEQVR4nOzdz2scdRjH8Wf2R3bXZJM0bfpDi2lsaxvEk5AKocmhVo8ePRQEL4qSkyD4F4gnQbx5UHq0Jz1qEUWQGrEXoaRiRYuF1lRijBvT7E+/MDCo7bOFsNvv83nm8yL0tNCZzTsz35l5simtnF8QonspCZGCcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZAq13FcXN1+/+tGnxe8vDB2dq4mecUjB6kYB6kYB6kYB6kYB6kYB6kYB6kYB6kYB6k8x7HT6t7Y6PR5we1GR3q9/i/46XarzwsOTxYr5YI4lTj+RerwfX3zkw0Zprefnzw6XRaneFohFeMgFeMgFeMgFeMgFeMgFeMgFeMgFeMglec4xmuFZ05U+7zgxh/t1d/afV4wd6B0eE+p/38hfnmOY3qs+Mrpep8XXFzdvrrWb/p88XiV0+dE98A4SJXrOE7NVh7b1+8dmK4XJcdyHcd4tRC+hBQ8rZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZCKcZAKKY4Pv2lc/70lyGb2lV96ekxAYMTR6fbe+Xzz2+tNAXflVrtxp7u8VE+SRMwDiMNNGamvru2Ef19brBcL1vuwPkHprIxU6CPsVNg1sc10HC7LSIWdst+H3Tgcl5Gy34fRONyXkTLeh8U4clJGynIf5uLIVRkps33YiiOHZaRs9mEojtyWkTLYB5+tkMrQkSPcMXz9zPj8zIjkUtjxsPumbpvaWnPktg+DZYjBq5Uc9mGzDLF5nyNXfZgtQ8zeIc1JH5bLEMvPVtz3YbwMMf5U1nEfi8cqxssQ+/McLvsIZSwvcdhnEJz1kZbBMcGBCX28cXbi3S82fl3vCLKj+8uvnh4XEEi3zxeP1d76dFOQnZuvCA6kOI5MwT8JwtoFpI9o3TNanKgBnKo1YePDLggOsM/vPbIX+OABt/Fgccwin1ngNh5sc2eQjxxwGw+2udBrUriNBzutPDxZHMH8Kxdhs8PGCxSwOApJ8ugUZB1hswsId0X/De+vjYBesCBuNl4cs3vLAghxs/FyBl2TIm423pEjXBDC3SVNMC/C8eKolJJDE2Br0rDBFbykAeMQwMUd6CIaMw60q1m4DU7xsvBBAD1ycOX/IIBeYUGeVrAGO+DGODKof48Z6ECNO4OCGgfQbATuDArqdgPdU8KdQUHdbqAlHu4MCuppBWWwA3GMI4MaB8pgB+IYRwY1DgG5CoAelweOA2JCAnT6JMV53eGCnogGPnLYH+wAHePIAMdhf7ADdIwjAxyHmF/uQa9GBT4O21ezoGMcGey0eeQYKvA4bF8LoH+gCPZpxfJgB+4YRwY7DjF86EY/p4iDOMxOS0B/lEgKfgfM3mWCvv2V4kewDYuDj7eDP63YHOyAHuPIwMdhc7ADeowjAx+HmLwucHCpIj7iMDgzAT3GkfEQuMGln4PVqPg4clgb7EAf48h4iMPaYAf6GEfGQxxibAHoYzUqfuKwdDWLPsaRcdI4jxzD4CUOS1cHPi5VxM1pxc5gh4MxjoyTOMTMwdzNOUU8xWFkfsLBGEfGz54Yue/k4/ZXys+eGFkGulmNiqfTioXBDh9jHBk/cVgY7PAxxpGxdQy8eqv5w1p7p9WTXZkeCwePmLlP1goXLm/JrlTKyYn9pZMHDf1VdhNxtLu9z1a3L1z+e6u5yyzcGB1JXnhq9Lm5aqEQ/whkIo6Pvtv6+PttIZHw4/HBpcb6Vufc/JjEFn/NsXqzyTL+J7wh19ZaElv8OC79siN0lxUDb0v808qPBn5EDPp5vS2xxY+j2xW621934q/N/dzOo4FjHKRiHKRiHKRiHKRiHKSKfxOsXvPzZHiA6tX4z1bif2M8zdUN0OPT8X8VO34cZ07WKszjv8Ibsni8KrHFj+PgePHFU/GfQJoS3pDwtkhsJn5mn52rHagX3/ty808D94zjmnqosLxUf/IREyM/ycr5BTHjys1meA7XjP/IKQJOgt3HE4dGwpeQDVwKkopxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkIpxkOofAAAA///3nvBzAAAABklEQVQDAKP7WCQeTHI5AAAAAElFTkSuQmCC">
+<link rel="icon" href="data:image/png;base64,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">
+<style>
+  :root{
+    --parchment:#f4ecd8;
+    --wood-dark:#3b2a1e;
+    --wood-mid:#7a5230;
+    --forest:#2f5d3a;
+    --forest-deep:#1e3d26;
+    --gold:#c9a13b;
+    --cream-text:#f4ecd8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--parchment);
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(122,82,48,0.06) 0, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(47,93,58,0.07) 0, transparent 45%);
+    color:var(--wood-dark);
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    line-height:1.5;
+  }
+  header{
+    padding:56px 24px 40px;
+    text-align:center;
+    border-bottom:3px solid var(--wood-mid);
+  }
+  .crest{
+    font-size:44px;
+    line-height:1;
+    margin-bottom:14px;
+    letter-spacing:2px;
+  }
+  h1{
+    font-size:clamp(32px,6vw,52px);
+    margin:0 0 10px;
+    color:var(--forest-deep);
+    font-weight:700;
+    letter-spacing:0.5px;
+  }
+  .tagline{
+    font-style:italic;
+    font-size:18px;
+    color:var(--wood-mid);
+    max-width:520px;
+    margin:0 auto;
+  }
+  main{
+    max-width:760px;
+    margin:0 auto;
+    padding:40px 24px 80px;
+  }
+  .lede{
+    font-size:19px;
+    max-width:600px;
+    margin:0 auto 36px;
+    text-align:center;
+    color:var(--wood-dark);
+  }
+  .frame-wrap{
+    border:10px solid var(--wood-mid);
+    border-radius:4px;
+    box-shadow:0 18px 40px rgba(59,42,30,0.28);
+    overflow:hidden;
+    background:#111;
+    aspect-ratio: 9 / 16;
+    max-width:480px;
+    margin:0 auto 28px;
+  }
+  .frame-wrap iframe{
+    width:100%;
+    height:100%;
+    border:0;
+    display:block;
+  }
+  .fallback{
+    text-align:center;
+    padding:52px 24px;
+    color:var(--cream-text);
+    background:var(--forest-deep);
+  }
+  .fallback p{
+    max-width:420px;
+    margin:0 auto 22px;
+    font-size:16px;
+    opacity:0.9;
+  }
+  .open-btn{
+    display:inline-block;
+    background:var(--gold);
+    color:var(--wood-dark);
+    font-family: 'Trebuchet MS', sans-serif;
+    font-weight:700;
+    font-size:18px;
+    text-decoration:none;
+    padding:16px 34px;
+    border-radius:6px;
+    border:3px solid var(--wood-dark);
+  }
+  .open-btn:active{ transform: translateY(1px); }
+  .features{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin:44px 0 0;
+    font-family: 'Trebuchet MS', sans-serif;
+  }
+  @media (max-width:480px){ .features{grid-template-columns:1fr;} }
+  .feature{
+    background:#fff8ea;
+    border:1px solid var(--wood-mid);
+    border-radius:6px;
+    padding:16px 18px;
+  }
+  .feature h3{
+    margin:0 0 6px;
+    font-size:15px;
+    color:var(--forest);
+    font-family: Georgia, serif;
+  }
+  .feature p{
+    margin:0;
+    font-size:14px;
+    color:var(--wood-dark);
+  }
+  footer{
+    text-align:center;
+    padding:30px 20px 50px;
+    font-family:'Trebuchet MS', sans-serif;
+    font-size:13px;
+    color:var(--wood-mid);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="crest">&#9822;&#9819;&#9821;</div>
+  <h1>Grandpa Chess Coach</h1>
+  <p class="tagline">We do not move pieces, we move ideas.</p>
+</header>
+
+<main>
+  <p class="lede">A patient, warm-voiced chess coach for kids and adults just starting out &mdash; a real board, real openings, and real conversation, one square at a time.</p>
+
+  <!--
+    Main button goes to the standalone app file in this same GitHub repo (chess-app-standalone.html).
+    This works for anyone, instantly, no sign-in needed.
+  -->
+  <div class="fallback" style="border-radius:8px;">
+    <p>Tap below to start a lesson &mdash; works instantly, no sign-in needed.</p>
+    <a class="open-btn" href="chess-app-standalone.html" target="_blank" rel="noopener">&#9812; Open Grandpa Chess Coach</a>
+    <p style="font-size:13px;margin-top:18px;opacity:0.85">Want the version with photo-reading and live AI coaching?<br>
+      <a href="https://claude.ai/artifact/PPgLBBDUqGM6HXYwKazyKb" target="_blank" rel="noopener" style="color:var(--gold)">Open the AI-powered version</a> (needs a free Claude account)
+    </p>
+    <div style="margin-top:18px">
+      <button id="shareBtn" onclick="shareThisPage()" style="background:transparent;color:var(--cream-text);border:2px solid var(--cream-text);border-radius:6px;padding:10px 22px;font-family:'Trebuchet MS',sans-serif;font-size:15px;cursor:pointer">Share This Page</button>
+    </div>
+  </div>
+  <script>
+    function shareThisPage(){
+      const shareData={title:'Grandpa Chess Coach',text:'A patient, warm-voiced chess coach for kids and adults just starting out.',url:window.location.href};
+      if(navigator.share){
+        navigator.share(shareData).catch(()=>{});
+      } else if(navigator.clipboard){
+        navigator.clipboard.writeText(window.location.href).then(()=>{
+          const btn=document.getElementById('shareBtn');
+          const original=btn.textContent;
+          btn.textContent='Link Copied!';
+          setTimeout(()=>{btn.textContent=original;},2000);
+        });
+      } else {
+        alert('Copy this link to share: '+window.location.href);
+      }
+    }
+  </script>
+
+  <div class="features">
+    <div class="feature">
+      <h3>Learn the pieces</h3>
+      <p>Real diagrams for how every piece moves, explained out loud.</p>
+    </div>
+    <div class="feature">
+      <h3>66 openings</h3>
+      <p>Tap an opening, see it played out on the board, hear why it works.</p>
+    </div>
+    <div class="feature">
+      <h3>A real coach</h3>
+      <p>Set up any position and get an honest, encouraging look at the board.</p>
+    </div>
+    <div class="feature">
+      <h3>In your own voice</h3>
+      <p>Record yourself, and hear it play back during the lesson.</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Grandpa Chess Coach &mdash; built one lesson at a time.
+</footer>
+
+</body>
+</html>
