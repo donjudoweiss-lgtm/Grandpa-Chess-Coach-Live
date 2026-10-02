@@ -5,6 +5,48 @@
 // It needs one thing set up in Netlify: an environment variable named
 // ELEVENLABS_API_KEY holding Don's ElevenLabs API key. The key never appears
 // in this file and never reaches the iPad.
+//
+// Faster version (Oct 2026): the voice ID is remembered after the first lookup, so most
+// requests make ONE trip to ElevenLabs instead of two. Same voice, same model
+// (eleven_multilingual_v2), same settings — the sound is unchanged.
+
+// Remembered between requests while Netlify keeps this helper "warm".
+const voiceIdCache = {};
+
+async function findVoiceId(apiKey, voiceName) {
+  const key = String(voiceName).toLowerCase().trim();
+  if (voiceIdCache[key]) return { id: voiceIdCache[key] };
+  const voicesResp = await fetch('https://api.elevenlabs.io/v1/voices', {
+    headers: { 'xi-api-key': apiKey }
+  });
+  if (!voicesResp.ok) {
+    const bodyText = await voicesResp.text().catch(() => '');
+    let msg = 'Could not list ElevenLabs voices (HTTP ' + voicesResp.status + ').';
+    if (voicesResp.status === 401) msg = 'ElevenLabs rejected the API key stored in this site\'s ELEVENLABS_API_KEY — it may be wrong or expired.';
+    return { error: msg + ' ' + bodyText.slice(0, 200), status: 502 };
+  }
+  const voicesData = await voicesResp.json();
+  const voices = voicesData.voices || [];
+  const match = voices.find(v => v.name && v.name.toLowerCase().trim() === key);
+  if (!match) {
+    const names = voices.map(v => v.name).join(', ');
+    return { error: 'No ElevenLabs voice named "' + voiceName + '" was found. Your voices are: ' + (names || '(none)') + '.', status: 404 };
+  }
+  voiceIdCache[key] = match.voice_id;
+  return { id: match.voice_id };
+}
+
+function speak(apiKey, voiceId, text) {
+  return fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceId, {
+    method: 'POST',
+    headers: {
+      'xi-api-key': apiKey,
+      'Content-Type': 'application/json',
+      'Accept': 'audio/mpeg'
+    },
+    body: JSON.stringify({ text: text, model_id: 'eleven_multilingual_v2' })
+  });
+}
 
 exports.handler = async function (event) {
   const headers = {
@@ -43,36 +85,21 @@ exports.handler = async function (event) {
   }
 
   try {
-    const voicesResp = await fetch('https://api.elevenlabs.io/v1/voices', {
-      headers: { 'xi-api-key': apiKey }
-    });
-    if (!voicesResp.ok) {
-      const bodyText = await voicesResp.text().catch(() => '');
-      let msg = 'Could not list ElevenLabs voices (HTTP ' + voicesResp.status + ').';
-      if (voicesResp.status === 401) msg = 'ElevenLabs rejected the API key stored in this site\'s ELEVENLABS_API_KEY — it may be wrong or expired.';
-      return { statusCode: 502, headers, body: JSON.stringify({ error: msg + ' ' + bodyText.slice(0, 200) }) };
-    }
-    const voicesData = await voicesResp.json();
-    const voices = voicesData.voices || [];
-    const match = voices.find(v => v.name && v.name.toLowerCase().trim() === String(voiceName).toLowerCase().trim());
-    if (!match) {
-      const names = voices.map(v => v.name).join(', ');
-      return {
-        statusCode: 404,
-        headers,
-        body: JSON.stringify({ error: 'No ElevenLabs voice named "' + voiceName + '" was found. Your voices are: ' + (names || '(none)') + '.' })
-      };
+    let found = await findVoiceId(apiKey, voiceName);
+    if (found.error) {
+      return { statusCode: found.status, headers, body: JSON.stringify({ error: found.error }) };
     }
 
-    const speechResp = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + match.voice_id, {
-      method: 'POST',
-      headers: {
-        'xi-api-key': apiKey,
-        'Content-Type': 'application/json',
-        'Accept': 'audio/mpeg'
-      },
-      body: JSON.stringify({ text: text, model_id: 'eleven_multilingual_v2' })
-    });
+    let speechResp = await speak(apiKey, found.id, text);
+    // If a remembered voice ID has gone stale (e.g. the voice was re-created), look it up fresh once.
+    if (speechResp.status === 404 || speechResp.status === 400) {
+      delete voiceIdCache[String(voiceName).toLowerCase().trim()];
+      found = await findVoiceId(apiKey, voiceName);
+      if (found.error) {
+        return { statusCode: found.status, headers, body: JSON.stringify({ error: found.error }) };
+      }
+      speechResp = await speak(apiKey, found.id, text);
+    }
     if (!speechResp.ok) {
       const bodyText = await speechResp.text().catch(() => '');
       let msg = 'ElevenLabs speech request failed (HTTP ' + speechResp.status + ').';
