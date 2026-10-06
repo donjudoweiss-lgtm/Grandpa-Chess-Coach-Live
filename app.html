@@ -697,6 +697,17 @@ const WELCOME_GREETING_TEXT="Welcome! Before we play, I suggest you review the f
    blocked and nothing is heard. Fix: ONE shared player that every tap quietly "unlocks"; later
    speech reuses that same player, which iPhones allow. */
 const SILENT_CLIP='data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==';
+/* build 95: iPhones turn the sound way down (or send it to the tiny ear speaker) after the camera
+   or microphone has been used. Switch the phone back to full loudspeaker playback whenever
+   Grandpa speaks, and only allow recording mode while the camera/mic is actually open. */
+function gccLoudSpeaker(){
+ try{
+  if(typeof micListening!=='undefined' && micListening) return;
+  if(typeof cameraGuideStream!=='undefined' && cameraGuideStream) return;
+  if(navigator.audioSession && navigator.audioSession.type!=='playback'){ navigator.audioSession.type='playback'; }
+ }catch(e){}
+}
+function gccRecordMode(){ try{ if(navigator.audioSession) navigator.audioSession.type='auto'; }catch(e){} }
 const grandpaPlayer=new Audio();
 grandpaPlayer.setAttribute('playsinline','');
 grandpaPlayer.addEventListener('timeupdate',function(){ markSpeechProgress(); });
@@ -783,6 +794,8 @@ async function elevenSpeakInner(t,name){
   const url=URL.createObjectURL(blob);
   stopAllAudio(true);
   const aud=grandpaPlayer;
+  gccLoudSpeaker();
+  aud.volume=1;
   aud.src=url;
   grandpaPlayerBusy=true;
   activeAudios.push(aud);
@@ -1760,11 +1773,13 @@ function toggleMic(){
  };
  micRecognition.onend=()=>{
   micListening=false;
+  gccLoudSpeaker();
   input.placeholder='Your question for Grandpa…';
   refreshAskBtn();
   if(input.value.trim()) sendMessage();
  };
  try{
+  gccRecordMode();
   micRecognition.start();
  }catch(e){
   micListening=false;
@@ -3084,6 +3099,7 @@ function compressImageDataUrl(dataUrl,maxDim,quality){
 /* A new picture means a new position: the old board's shaking pieces, red rings and arrows go away. */
 function calmTheBoard(){ threatsVisible=false; highlightSquares=[]; moveFrom=null; try{ clearAnalysisArrows(); }catch(e){} waitingForMoveAfterPhoto=false; drawBoard(); }
 function processCapturedPhoto(rawDataUrl,photoKind){
+ gccLoudSpeaker();
  calmTheBoard();
  showAllPhotos();
  addSystem('📸 Photo taken — laying it on the board...');
@@ -3161,6 +3177,7 @@ async function openCameraGuide(purpose){
   return;
  }
  try{
+  gccRecordMode();
   cameraGuideStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
   const video=document.getElementById('cameraVideoEl');
   video.srcObject=cameraGuideStream;
@@ -3176,6 +3193,7 @@ function closeCameraGuide(){
   cameraGuideStream.getTracks().forEach(t=>{try{t.stop();}catch(e){}});
   cameraGuideStream=null;
  }
+ gccLoudSpeaker();
  document.getElementById('cameraGuidePane').classList.remove('on');
 }
 function cancelCameraGuide(){
