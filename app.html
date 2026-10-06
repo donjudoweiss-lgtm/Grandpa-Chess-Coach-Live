@@ -162,6 +162,7 @@ input[type=file]{display:none}
 <div class="board" id="board"></div>
 <img class="boardPhotoOverlay" id="boardPhotoOverlay" alt="Your photo, lined up on the board" draggable="false" ondragstart="return false">
 </div>
+<div id="gpBubble" style="display:none"><div class="gpWho"><span class="gpFace">♔</span> GRANDPA</div><div class="gpText" id="gpBubbleText"></div></div>
 <div id="readStatus" style="display:none;max-width:500px;margin:6px auto;padding:14px;background:#2563eb;color:#fff;border:3px solid #fff;border-radius:14px;font-size:19px;font-weight:bold;text-align:center"></div>
 <div id="photoActions" style="display:none;max-width:500px;margin:0 auto;padding:0 6px">
 <button id="turnPhotoBtn" onclick="toggleBoardView()" style="margin:8px auto 0;display:block;width:100%;background:#FACC15;color:#000;border:4px solid #fff;border-radius:14px;padding:12px;font-size:18px;font-weight:bold">🔄 TURN BOARD TO MATCH PHOTO</button>
@@ -175,9 +176,21 @@ input[type=file]{display:none}
 </div>
 <div class="pickerWrap"><div class="picker"><div class="pick" data-c="wK"><div class="circlePick w"></div></div><div class="pick" data-c="wQ"><div class="circlePick w"></div></div><div class="pick" data-c="wR"><div class="circlePick w"></div></div><div class="pick" data-c="wB"><div class="circlePick w"></div></div><div class="pick" data-c="wN"><div class="circlePick w"></div></div><div class="pick" data-c="wP"><div class="circlePick w"></div></div></div><div class="picker"><div class="pick" data-c="bK"><div class="circlePick b"></div></div><div class="pick" data-c="bQ"><div class="circlePick b"></div></div><div class="pick" data-c="bR"><div class="circlePick b"></div></div><div class="pick" data-c="bB"><div class="circlePick b"></div></div><div class="pick" data-c="bN"><div class="circlePick b"></div></div><div class="pick" data-c="bP"><div class="circlePick b"></div></div></div></div>
 <div class="smallBtns"><button class="btnSmall" style="background:#FACC15;color:#000" onclick="openCameraGuide()">📸 TAKE PICTURE</button><button class="btnSmall" id="moveModeBtn" style="background:#9b59b6;color:#fff" onclick="toggleMoveMode()">🎯 MAKE A MOVE</button><button class="btnSmall" id="grandpaMoveBtn" style="background:#16a085;color:#fff" onclick="grandpaTakesTurn()">♟️ GRANDPA, MAKE YOUR RECOMMENDED MOVE</button><button class="btnSmall erase" id="eraseBtn">ERASE</button><button class="btnSmall reset" id="resetBtn">RESET</button><button class="btnSmall btnAnalyze" onclick="analyzeBoard()">🔍 GRANDPA ANALYZE THIS BOARD</button><button class="btnSmall" id="togglePhotosBtn" style="background:#FACC15;color:#000" onclick="togglePhotoGallery()">✕ CLOSE PHOTO</button>
-<div id="livePane" class="pane on" style="display:block;max-width:500px;margin:0 auto;padding:0 6px"><div class="liveBox" id="liveBox"></div><div style="background:#FACC15;border:4px solid #fff;border-radius:14px;padding:14px;margin:8px 0;text-align:left;color:#000"><div style="font-size:19px;font-weight:900;margin-bottom:8px">HOW TO ASK GRANDPA A QUESTION</div><div style="font-size:16px;font-weight:bold;margin-bottom:10px">Type in the box below OR talk instead — whichever is easier for you.</div><div style="font-size:16px;font-weight:bold;margin-bottom:6px">IPHONE: Tap the box below. On your keyboard, tap the small 🎤 microphone key (bottom row, next to the space bar). Speak your question. Tap it again when you're done talking.</div><div style="font-size:16px;font-weight:bold;margin-bottom:10px">ANDROID: Tap the box below. On your keyboard, tap the 🎤 microphone key. Speak your question — it types itself in.</div><div style="font-size:15px;font-weight:bold;border-top:2px solid #000;padding-top:8px">DON'T SEE THE 🎤 KEY? Turn on dictation: <br>IPHONE — Settings → General → Keyboard → turn ON "Enable Dictation."<br>ANDROID — Settings → System → Languages & input → On-screen keyboard → Gboard → Voice typing → turn ON "Use voice typing" (or "Google voice typing").<br>Then close Settings and come back — the 🎤 key will show up on the keyboard.</div></div><div class="inputRow"><select class="speakerSel" id="speakerSel"><option value="student">Me — ask</option><option value="coach">Coach</option></select><input class="textInput" id="liveInput" placeholder="Ask coach — voice — coach responds"></div><div class="longBtns" style="padding:0"><button class="longBtn" id="askStopBtn" onclick="handleAskStop()" style="background:#3498db;color:#fff;border:5px solid #fff;font-size:19px;padding:20px;box-shadow:0 0 14px rgba(52,152,219,0.7)">🎤 TAP TO ASK COACH</button><button class="longBtn btnVoice" id="voiceToggle" onclick="toggleVoice()">🔊 voice on / off</button></div></div>
+<div id="livePane" class="pane on" style="display:block;max-width:500px;margin:0 auto;padding:0 6px"><div class="liveBox" id="liveBox"></div><div class="askArea">
+<button class="longBtn" id="askStopBtn" onclick="gccAskTap()" style="background:#3498db;color:#fff;border:5px solid #fff;font-size:22px;padding:22px;box-shadow:0 0 14px rgba(52,152,219,0.7);margin:0">🎤 TAP HERE TO ASK GRANDPA</button>
+<div class="askArrow">⬇ then speak — or type your question here ⬇</div>
+<input class="askBox" id="liveInput" placeholder="Your question for Grandpa…" autocomplete="off">
+<button class="longBtn" id="askSendBtn" onclick="sendMessage()" style="background:#2ecc71;color:#000;border:4px solid #fff;font-size:20px;padding:16px;margin:0">➤ SEND MY QUESTION TO GRANDPA</button>
+<details class="askHelp"><summary>Want to talk instead of typing?</summary>
+<p>Tap the question box, then tap the small 🎤 microphone key on your keyboard (bottom row, next to the space bar) and speak. Tap it again when you are done.</p>
+<p>Don't see the 🎤 key? iPhone/iPad: Settings → General → Keyboard → turn ON "Enable Dictation." Android: Settings → System → Languages &amp; input → On-screen keyboard → Gboard → Voice typing → ON.</p>
+</details>
+<select class="speakerSel" id="speakerSel" hidden><option value="student">Me — ask</option><option value="coach">Coach</option></select>
+<button class="longBtn btnVoice" id="voiceToggle" onclick="toggleVoice()" style="display:none">🔊 voice on / off</button>
+</div>
+</div>
 <style>@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}</style>
-<div class="longBtns" id="mainButtons"><button class="longBtn btnFund" onclick="togglePane('fundPane')">FUNDAMENTALS — tap to open — tap to close</button><button class="longBtn btnOpen" onclick="togglePane('openPane')">OPENINGS &amp; DEFENSES — tap to open — tap to close</button><button class="longBtn" style="background:#8e44ad;color:#fff" onclick="togglePane('movesPane')">♞ HOW PIECES MOVE — tap to open — tap to close</button><button class="longBtn btnKnow" onclick="togglePane('knowPane')">KNOWLEDGE — tap to open — tap to close</button><button class="longBtn btnTact" onclick="togglePane('tactPane')">TACTICS — tap to open — tap to close</button><button class="longBtn btnMyVoice" onclick="togglePane('voicePane')">🎤 MY VOICE — Don's Voice — tap to open — add your voice</button><button class="longBtn" style="background:#16a085;color:#fff" onclick="togglePane('settingsPane')">⚙️ REAL VOICE SETUP — tap to open — enter your voice name</button>
+<div class="longBtns" id="mainButtons"><button class="longBtn btnFund" onclick="togglePane('fundPane')">FUNDAMENTALS — tap to open — tap to close</button><button class="longBtn btnOpen" onclick="togglePane('openPane')">OPENINGS &amp; DEFENSES — tap to open — tap to close</button><button class="longBtn" style="background:#8e44ad;color:#fff" onclick="togglePane('movesPane')">♞ HOW PIECES MOVE — tap to open — tap to close</button><button class="longBtn btnKnow" onclick="togglePane('knowPane')">KNOWLEDGE — tap to open — tap to close</button><button class="longBtn btnTact" onclick="togglePane('tactPane')">TACTICS — tap to open — tap to close</button><button class="longBtn btnMyVoice gccDevOnly" onclick="togglePane('voicePane')">🎤 MY VOICE — Don's Voice — tap to open — add your voice</button><button class="longBtn gccDevOnly" style="background:#16a085;color:#fff" onclick="togglePane('settingsPane')">⚙️ REAL VOICE SETUP — tap to open — enter your voice name</button>
 <button class="longBtn" style="background:#e67e22;color:#fff" onclick="openChessClock()">⏱️ CHESS CLOCK — tap to open</button></div>
 
 <div id="fundPane" class="pane"><button class="closeBtn" onclick="closeAll()">▲ tap to close ▲</button>
@@ -564,7 +577,7 @@ async function gccPersonalize(t){
  try{
   var cap=await getSampleCap(); if(!cap||!p) return t;
   var prompt='You are Grandpa Don, an American grandfather from New York, '+grandpaSpeechPhrase()+', a warm chess coach sitting beside '+p.name+' at a real chess board. The program needs you to tell '+p.name+' the following. Say it to '+p.name+' in your own warm, natural words — short (one or two sentences), the same meaning and the same instructions, keeping every button name, square name and number exactly as written. Do not add anything new.\n\nWhat to tell '+p.name+': "'+t+'"'+gccPlayerContext(false)+'\n\nReply with ONLY what Grandpa says out loud.';
-  var r=await cap(prompt,{modelTier:'complex',gccNoMemory:true});
+  var r=await Promise.race([cap(prompt,{modelTier:'complex',gccNoMemory:true}),new Promise(function(res){setTimeout(function(){res(null);},4000);})]);
   var out=(r&&r.text||'').trim().replace(/^["“]|["”]$/g,'');
   return out||t;
  }catch(e){return t;}
@@ -713,13 +726,13 @@ function stopAllAudio(keepQueue){ if(!keepQueue) pendingSpeech=[]; deviceSpeechA
 /* Real voice now goes through a small relay on Don's Netlify site — the ElevenLabs key lives there
    as an environment variable, never on the iPad, and never blocked by the browser's cross-site rules
    the way a direct call from this page to ElevenLabs was. */
-const ELEVEN_RELAY_URL='https://reliable-pegasus-4e1728.netlify.app/.netlify/functions/eleven-speak';
+const ELEVEN_RELAY_URL=(/^https?:$/.test(location.protocol)&&!/claude\.ai|claudeusercontent/.test(location.host))?'/.netlify/functions/eleven-speak':'https://reliable-pegasus-4e1728.netlify.app/.netlify/functions/eleven-speak';
 const ELEVEN_VOICE_NAME_STORAGE='grandpa_eleven_voice_name_v1';
 /* CLAUDE VISION/ANALYSIS RELAY — on Claude.ai this page uses window.claude.use('sample') directly.
    On the real website (Netlify), that built-in shortcut does not exist, so this relay calls
    Anthropic's own Claude API on Netlify's servers instead, using a key stored in Netlify as an
    environment variable, never on the iPad. See getSampleCap() below. */
-const CLAUDE_RELAY_URL='https://reliable-pegasus-4e1728.netlify.app/.netlify/functions/claude-analyze';
+const CLAUDE_RELAY_URL=(/^https?:$/.test(location.protocol)&&!/claude\.ai|claudeusercontent/.test(location.host))?'/.netlify/functions/claude-analyze':'https://reliable-pegasus-4e1728.netlify.app/.netlify/functions/claude-analyze';
 /* Don's cloned ElevenLabs voice is built in, so every phone and iPad — including customers' — uses it
    with no setup. A name typed into Real Voice Setup still takes priority. */
 const DEFAULT_ELEVEN_VOICE_NAME='Grandpa Chess Coach';
@@ -881,6 +894,7 @@ function speak(t,w){
  if(w==='coach' && typeof gccPersonalSpeak==='function' && typeof gccCurrentPlayer==='function' && gccCurrentPlayer() && !gccIsAiText(t)){
   const personal=gccPersonalSpeak(t,w); if(!personal) return; t=personal;
  }
+ if(w==='coach'){ try{ gccBubble(t); }catch(e){} }
  if(w==='coach' && getLanguageCode()!=='en' && looksLikeEnglish(t,3) && !(typeof gccIsAiText==='function' && gccIsAiText(t))){
   const key=getLanguageCode()+'|'+t;
   if(builtInTranslations[key]){ t=builtInTranslations[key]; }
@@ -1137,7 +1151,7 @@ async function startRecording(){
    addSystem('🔴 RECORDING NOW: '+label+' — speak close to mic!');
  }catch(err){
    console.log(err);
-   alert('Microphone blocked or not working — iPad Settings — Safari — Microphone — Allow — Also need HTTPS — GitHub Pages HAS HTTPS — this preview may block mic — try on GitHub live site! Error: '+err.message);
+   alert('Grandpa can\'t hear the microphone right now. Please allow the microphone for this website in your settings — or just type your question.');
    document.getElementById('recStatus').innerHTML='❌ Mic blocked — <b>Go to Settings — Safari — Microphone — Allow</b> — And use GitHub live site HTTPS — preview blocks mic — Error: '+err.message;
  }
 }
@@ -1699,7 +1713,7 @@ async function translateCoachLine(txt){
   return (r&&r.text&&r.text.trim())?r.text.trim():txt;
  }catch(e){ return txt; }
 }
-function addMsgNow(t,w,txt,noSpeak){const div=document.createElement('div');div.className='msg '+t;const wh=document.createElement('div');wh.style.cssText='font-size:11px;font-weight:bold';wh.textContent=w;div.appendChild(wh);div.appendChild(document.createTextNode(txt));const sp=document.createElement('button');sp.className='speakerBtn';sp.textContent='🔊';sp.onclick=()=>{isStopped=false;speak(txt,t);};div.appendChild(sp);liveBox.appendChild(div);liveBox.scrollTop=liveBox.scrollHeight;if(!noSpeak&&!isStopped){if(t==='student')speak(txt,'student');else if(t==='coach')speak(txt,'coach');}}
+function addMsgNow(t,w,txt,noSpeak){if(t==='coach'){try{gccBubble(txt);}catch(e){}}const div=document.createElement('div');div.className='msg '+t;const wh=document.createElement('div');wh.style.cssText='font-size:11px;font-weight:bold';wh.textContent=w;div.appendChild(wh);div.appendChild(document.createTextNode(txt));const sp=document.createElement('button');sp.className='speakerBtn';sp.textContent='🔊';sp.onclick=()=>{isStopped=false;speak(txt,t);};div.appendChild(sp);liveBox.appendChild(div);liveBox.scrollTop=liveBox.scrollHeight;if(!noSpeak&&!isStopped){if(t==='student')speak(txt,'student');else if(t==='coach')speak(txt,'coach');}}
 function addSystem(txt){const div=document.createElement('div');div.className='msg system';div.textContent=txt;liveBox.appendChild(div);liveBox.scrollTop=liveBox.scrollHeight;}
 /* MICROPHONE - speak your question instead of typing it */
 let micRecognition=null,micListening=false;
@@ -1722,7 +1736,7 @@ function toggleMic(){
  micRecognition.interimResults=true;
  micRecognition.continuous=false;
  micListening=true;
- input.placeholder='Listening... speak your question';
+ input.placeholder='🔴 Listening… speak your question now';
  refreshAskBtn();
  micRecognition.onresult=(e)=>{
   let text='';
@@ -1734,7 +1748,7 @@ function toggleMic(){
  };
  micRecognition.onend=()=>{
   micListening=false;
-  input.placeholder='Ask coach — voice — coach responds';
+  input.placeholder='Your question for Grandpa…';
   refreshAskBtn();
   if(input.value.trim()) sendMessage();
  };
@@ -1754,7 +1768,7 @@ function forceResetMic(){
  const input=document.getElementById('liveInput');
  if(micRecognition){try{micRecognition.onend=null;micRecognition.onresult=null;micRecognition.onerror=null;micRecognition.abort();}catch(e){}}
  micListening=false;
- if(input) input.placeholder='Ask coach — voice — coach responds';
+ if(input) input.placeholder='Your question for Grandpa…';
  if(input && input.value.trim()) sendMessage();
 }
 function refreshAskBtn(){
@@ -1790,7 +1804,7 @@ function refreshAskBtn(){
   btn.textContent='⏸️ TAP TO STOP GRANDPA';
   btn.style.background='#e74c3c';
  } else {
-  btn.textContent='🎤 TAP TO ASK COACH';
+  btn.textContent='🎤 TAP HERE TO ASK GRANDPA';
   btn.style.background='#3498db';
  }
 }
@@ -1848,7 +1862,7 @@ async function sendMessage(){
   isStopped=false; speak(text,'coach');
  }catch(e){
   chatTurns.pop();
-  txtNode.textContent="Sorry — I couldn't think that through just now"+(e&&e.message?(' ('+e.message+')'):'')+". Try again in a moment.";
+  txtNode.textContent="Sorry — I couldn't think that through just now"+(gccDev&&e&&e.message?(' ('+e.message+')'):'')+". Try again in a moment.";
  }
 }
 document.getElementById('liveInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendMessage();});
@@ -2207,13 +2221,13 @@ async function analyzeBoard(justMoved){
 }
 async function analyzeBoardInner(justMoved){
  const cap=await getSampleCap();
- if(!cap){analyzeBoardFallback();return;}
+ if(!cap){gccAnalysisTrouble('no connection',justMoved);return;}
  const name=getName();
  const fen=boardToFen(boardState);
  /* Light up the attack lines/highlighting right when Don asks for analysis — a visual to go
     along with what Grandpa is about to say, not something that pops up unexplained after an
     ordinary move. */
- addSystem('🧠 Grandpa is really studying the board...');
+ addSystem('🧠 Grandpa is really studying the board...'); gccBubble('',true);
  const div=document.createElement('div');div.className='msg analyze';
  div.innerHTML='<div style="font-size:11px;font-weight:bold">🔍 Grandpa sees board — ANALYZE:</div>';
  const txtNode=document.createElement('span');txtNode.textContent='Thinking...';div.appendChild(txtNode);
@@ -2226,17 +2240,17 @@ async function analyzeBoardInner(justMoved){
   else if(idResult.status==='multiple'){ openingNote=' This position could still turn into more than one known opening ('+idResult.names.slice(0,4).join(', ')+'), so tell '+name+' it is still being narrowed down rather than naming just one.'; }
   else { openingNote=' This position does not match any of the 100 named openings in the coach\'s library exactly — treat it as free play rather than guessing a formal opening name.'; }
   const prompt='You are Grandpa Don, an American grandfather from New York, '+grandpaSpeechPhrase()+', a warm, patient chess coach talking with your grandchild '+name+'. Here is the current position as FEN (it may be a position you set up, not necessarily mid-game): '+fen+'. The same position spelled out: '+boardToPieceList(boardState)+' Trust the spelled-out list if you are ever unsure — only talk about pieces that are actually on these squares.'+openingNote+' '+playerSideNote(name)+APP_ROUTINE_NOTE+' Look at it like a real coach would: whose position looks better and why, any threats or tactics worth noticing for either side, and ONE specific move you suggest playing next (say the piece and square in plain words, like "bring your knight to f6"). Talk like Grandpa actually talking — warm, plain, 4-6 sentences, no markdown, no long move-list dumps. Vary your opening words and phrasing each time rather than repeating the same stock lines — sound like a real person reacting freshly to what is actually on the board right now. '+(justMoved?(name+' JUST MADE A MOVE on the app board: the '+justMoved.piece+' from '+justMoved.from+' to '+justMoved.to+(justMoved.captured?(', capturing a '+justMoved.captured):'')+'. The position above is AFTER that move, so it is now the OPPONENT\'s turn. Start by reacting to that move in a sentence (was it good? if something clearly better existed, name it gently). Then evaluate the position as it stands now: who is better and why, and what the opponent is threatening or will probably try next. Instead of suggesting a move for '+name+' (it is not '+name+'\'s turn), point out the opponent\'s most likely reply or the danger to watch. ALWAYS finish by telling '+name+' clearly what to do next, in your own warm words, ONE time only and briefly: play this same move on your real board, wait for your opponent to answer, then take a new picture.'):(turnNote(name)+(whoseTurn==='opponent'?(' Start with how '+name+'\'s position looks now, then what the opponent is threatening or will probably try. ALWAYS finish by telling '+name+' clearly, ONE time only and briefly: wait for your opponent to move, then take a new picture.'):(' ALWAYS finish by telling '+name+' clearly what to do next, in your own warm words, ONE time only: make your move on the board here with MAKE A MOVE, and I will look at it with you.'))))+getLangInstruction()+' FINALLY, after everything you say, add ONE last separate line (it will be hidden and turned into arrows drawn on the board) in exactly this form: ARROWS: from-to-color, from-to-color — up to 3 arrows, in the same order you talk about them, using real squares from the position. Use green for the move you suggest (or, right after a move, the move '+name+' just made), red for a threat or attack to watch out for, blue for an idea or plan. Example: ARROWS: g1-f3-green, d8-h4-red. Never mention the word ARROWS or these codes in your spoken words. IMPORTANT: these arrows are drawn on the board WHILE you talk, one after another in that order — so in your spoken words, point to each one by its color as you explain it, like a grandpa pointing at the board (for example: See the red arrow? Their queen is eyeing your pawn on h4. Now look at the green arrow — that is your knight jumping to f3 to stop it). Talk about what the pieces are DOING to each other — who attacks what, what is protected, what is in danger — never just list where the pieces stand.';
-  const raw=await cap(prompt,{modelTier:'complex',onText:(u)=>{streamedText=splitArrows(u.text).text;txtNode.textContent=streamedText;liveBox.scrollTop=liveBox.scrollHeight;}});
+  const raw=await cap(prompt,{modelTier:'complex',onText:(u)=>{streamedText=splitArrows(u.text).text;txtNode.textContent=streamedText;gccBubble(streamedText);liveBox.scrollTop=liveBox.scrollHeight;}});
   const parsed=splitArrows(raw&&raw.text);
   const text=parsed.text;
-  streamedText=text; txtNode.textContent=text;
+  streamedText=text; txtNode.textContent=text; gccBubble(text);
   try{ showAnalysisArrows(parsed.arrows,text); }catch(arrErr){ console.warn('arrows failed',arrErr); }
   const sp=document.createElement('button');sp.className='speakerBtn';sp.textContent='🔊';sp.onclick=()=>{isStopped=false;speak(text,'coach');};div.appendChild(sp);
   /* Tapping ANALYZE is Don deliberately asking Grandpa to talk — un-mute even if STOP was
      tapped earlier in the session, same as the other explicit talk-to-me buttons do. */
   isStopped=false;
   speak(text,'coach');
-  addSystem('🔍 Grandpa analyzed the board');
+  addSystem('🔍 Grandpa analyzed the board'); gccAnalysisRetried=false;
   chatTurns.push({role:'user',content:justMoved?('(I just moved my '+justMoved.piece+' from '+justMoved.from+' to '+justMoved.to+'. Grandpa, what do you think?)'):'(Grandpa, please analyze the board.)'});
   chatTurns.push({role:'assistant',content:text});
   if(chatTurns.length>16) chatTurns=chatTurns.slice(-16);
@@ -2250,8 +2264,7 @@ async function analyzeBoardInner(justMoved){
    return;
   }
   div.remove();
-  if(e&&e.message) addSystem('🧠 Smart analysis unavailable ('+e.message+') — using the built-in coach instead.');
-  analyzeBoardFallback();
+  gccAnalysisTrouble(e&&e.message,justMoved);
  }
 }
 /* OFFLINE FALLBACK - used only if AI analysis is unavailable */
@@ -2604,7 +2617,9 @@ function boardIsReady(turn){
  const yourSide=(playingColor==='black')?'Black':(playingColor==='white'?'White':'');
  waitingForMoveAfterPhoto=true; whoseTurn='player';
  addSystem('🧠 Board is set. Move mode is ON — make your move.');
- speak('The board is set, '+getName()+'. '+(yourSide?('You are playing '+yourSide+'. '):'')+'Now make your move. Tap your piece, then tap the square where it goes. If you want my pick, tap the green button, Grandpa, make your recommended move. As soon as you move, I will look at the board with you.','coach');
+ /* build 87: Grandpa starts the conversation by himself the moment the board is confirmed —
+    he looks at the position and coaches, no extra ANALYZE tap needed. */
+ analyzeBoard();
 }
 /* While fixing, the panel with the two DONE buttons stays right under the board. */
 async function waitForDoneFixing(){
@@ -3341,4 +3356,68 @@ const tacticContainer=document.getElementById('tacticContainer');tactics.forEach
 })();
 </script>
 
+
+<style>
+#gpBubble{max-width:500px;margin:10px auto 6px;background:#FAF6EC;color:#231A10;border:3px solid #C9A227;border-radius:18px;padding:12px 16px 14px;position:relative;box-shadow:0 4px 14px rgba(0,0,0,.35);text-align:left}
+#gpBubble::before{content:'';position:absolute;left:34px;top:-15px;border:12px solid transparent;border-bottom:14px solid #C9A227;border-top:0}
+#gpBubble .gpWho{font:bold 13px Georgia,serif;letter-spacing:2px;color:#2F5233;margin-bottom:4px}
+#gpBubble .gpFace{color:#C9A227;font-size:16px}
+#gpBubble .gpText{font:20px/1.4 Georgia,serif;white-space:pre-wrap}
+#gpBubble.thinking .gpText{color:#6B5B45;font-style:italic}
+</style>
+<script>
+/* build 87: Grandpa's words show in a speech bubble right under the board, so it is clear who is talking. */
+function gccBubble(text,thinking){
+ var b=document.getElementById('gpBubble'),t=document.getElementById('gpBubbleText'); if(!b||!t) return;
+ if(thinking){ b.classList.add('thinking'); t.textContent='Grandpa is looking at the board…'; b.style.display='block'; return; }
+ text=String(text||'').replace(/(^|\n)[\s*_#>\-]*ARROWS?\s*[:\-–—][^\n]*$/i,'').trim(); if(!text) return;
+ var cur=t.textContent||''; if(!b.classList.contains('thinking') && b.style.display==='block' && cur.length>text.length && cur.indexOf(text.slice(0,Math.min(40,text.length)))!==-1) return;
+ b.classList.remove('thinking'); t.textContent=text; b.style.display='block';
+}
+/* If Grandpa's thinking can't be reached, try once more by himself, then say so plainly — never the old list of squares. */
+var gccAnalysisRetried=false;
+function gccAnalysisTrouble(msg,justMoved){
+ console.warn('analysis trouble',msg);
+ if(!gccAnalysisRetried){ gccAnalysisRetried=true; gccBubble('',true); setTimeout(function(){ analyzeBoard(justMoved||undefined); },1500); return; }
+ gccAnalysisRetried=false;
+ var b=document.getElementById('gpBubble'),t=document.getElementById('gpBubbleText');
+ if(b&&t){ b.classList.add('thinking'); t.textContent='Grandpa can\'t reach his thinking right now. Tap 🔍 GRANDPA ANALYZE THIS BOARD in a moment to try again.'; b.style.display='block'; }
+ if(gccDev) addSystem('⚠️ [developer] analysis failed'+(msg?(' ('+msg+')'):''));
+}
+</script>
+
+<style>.gccDevOnly{display:none!important}body.gccDev .gccDevOnly{display:block!important}</style>
+<script>
+/* build 88: DEVELOPER MODE. Players never see technical messages or the voice-setup bars.
+   Don opens the program with ?dev=1 at the end of the address to see them (and ?dev=0 to hide them again). */
+var gccDev=(function(){try{var q=location.search;if(/[?&]dev=1/.test(q))localStorage.setItem('gcc_dev','1');if(/[?&]dev=0/.test(q))localStorage.removeItem('gcc_dev');return localStorage.getItem('gcc_dev')==='1';}catch(e){return /[?&]dev=1/.test(location.search);}})();
+if(gccDev) document.body.classList.add('gccDev');
+var GCC_TECH=/netlify|elevenlabs|relay|claude|anthropic|http|api\b|api key|credits|github|developer|environment variable|voice name/i;
+(function(){
+ var origSys=addSystem;
+ addSystem=function(t){ if(!gccDev && GCC_TECH.test(String(t))){ console.warn('[hidden from player]',t); return; } return origSys(t); };
+ var origRead=setReadStatus;
+ setReadStatus=function(t){ if(t && !gccDev && GCC_TECH.test(String(t))){ console.warn('[hidden from player]',t); t='Grandpa couldn\'t read that just now. Please try again in a moment.'; } return origRead(t); };
+})();
+</script>
+
+<style>
+.askArea{display:flex;flex-direction:column;gap:10px;margin:12px 0 8px}
+.askArrow{text-align:center;color:#FACC15;font-size:17px;font-weight:bold}
+.askBox{width:100%;box-sizing:border-box;font-size:22px;padding:18px 16px;border-radius:14px;border:4px solid #3498db;background:#fff;color:#000}
+.askBox:focus{outline:none;border-color:#FACC15;box-shadow:0 0 0 3px rgba(250,204,21,.5)}
+.askHelp{background:#222;border:2px solid #555;border-radius:12px;padding:10px 14px;color:#ddd;font-size:15px;text-align:left}
+.askHelp summary{font-weight:bold;cursor:pointer;color:#FACC15;font-size:16px}
+.askHelp p{margin:8px 0 0;line-height:1.4}
+</style>
+<script>
+/* build 89: one clear way to ask. Tap the big blue button, then speak (or type in the big box right under it). */
+function gccAskTap(){
+ var input=document.getElementById('liveInput');
+ if(micListening || isGrandpaSpeaking()){ handleAskStop(); return; }
+ if(input && input.value.trim()){ sendMessage(); return; }
+ if(getSpeechRecognition()){ toggleMic(); }
+ if(input){ input.focus(); try{ input.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
+}
+</script>
 </body></html>
