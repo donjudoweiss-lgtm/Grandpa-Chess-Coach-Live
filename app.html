@@ -887,7 +887,7 @@ document.getElementById('robinson43Audio').src=ROBINSON43_DATA;
 function playRobinson(){try{let a=new Audio(ROBINSON35_DATA);activeAudios.push(a);a.play();addSystem('▶️ Playing Robinson Dr 35 — Grandpa Don real voice');}catch(e){addSystem('⚠️ Could not play that recording.');}}
 function playRobinsonFixed(){playRobinson();}
 const VOICE_MODE_KEY='grandpa_voice_mode_v1';
-function getVoiceMode(){try{var m=localStorage.getItem(VOICE_MODE_KEY)||'auto';return m==='device'?'auto':m;}catch(e){return 'auto';}}
+function getVoiceMode(){try{var m=localStorage.getItem(VOICE_MODE_KEY)||'auto';return (m==='device'||m==='clips')?'auto':m;}catch(e){return 'auto';}}
 function setVoiceMode(m){try{localStorage.setItem(VOICE_MODE_KEY,m);}catch(e){}
  const labels={auto:'Automatic — best voice available',eleven:'Your ElevenLabs cloned voice',clips:'Your recorded voice clips',device:'This device\'s built-in voice'};
  addSystem('🔊 Coach voice set to: '+(labels[m]||m));
@@ -937,7 +937,9 @@ function speakNow(t,w){
  }
  speakFallback(t,w);
 }
-function speakFallback(t,w){
+function speakFallback(t,w){ /* build 93: recorded clips are never mixed into the conversation — live voice only */ speakDeviceOnly(t,w); return;
+}
+function speakFallbackOldClips(t,w){
  if(isStopped) return;
  // Try to find matching voice clip by label
  let clips=loadVoiceClips();
@@ -1173,7 +1175,9 @@ function stopRecording(){
 }
 
 function closeAll(){document.querySelectorAll('.pane').forEach(p=>{if(p.id!=='livePane')p.classList.remove('on');});document.getElementById('livePane').style.display='block';}
-function playFundamentalsMyVoice(){
+function playFundamentalsMyVoice(){ isStopped=false; speak('Remember the fundamentals: we do not move pieces, we move ideas. Control the center, bring your knights out before your bishops, castle early, and never hang a piece.','coach'); return;
+}
+function playFundamentalsOldRecording(){
  isStopped=false;
  // Try MY VOICE clips first that contain "move ideas" or "center" etc
  let clips=loadVoiceClips();
@@ -3523,6 +3527,21 @@ function gccTrace(msg){
  /* when the board is confirmed (DONE / YES), put the chosen tray piece away so a tap can't drop it by accident */
  var origReady=window.boardIsReady;
  if(typeof origReady==='function'){ window.boardIsReady=function(turn){ try{ sel=null; document.querySelectorAll('.pick').forEach(function(x){x.classList.remove('on');}); reset(); }catch(e){} return origReady.apply(this,arguments); }; }
+})();
+</script>
+
+<script>
+(function(){
+ var orig=setReadStatus;
+ setReadStatus=function(t){
+  var r=orig(t);
+  try{
+   var b=document.getElementById('gpBubble'),tx=document.getElementById('gpBubbleText');
+   if(b&&tx){ if(t){ gccThinkStop(); b.classList.add('thinking'); tx.textContent=String(t).replace(/^🧠\s*/,''); b.style.display='block'; }
+              else if(b.classList.contains('thinking') && /reading your photo/i.test(tx.textContent)){ tx.textContent='Grandpa has read your picture — check the board below the question.'; } }
+  }catch(e){}
+  return r;
+ };
 })();
 </script>
 </body></html>
