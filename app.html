@@ -554,14 +554,16 @@ function wrapCapWithPlayerMemory(base){
    else { req=req.slice(); req[0]=Object.assign({},req[0],{content:req[0].content+gccPlayerContext(true)}); }
    if(typeof opts.onText==='function'){var inner=opts.onText;opts=Object.assign({},opts,{onText:function(u){try{inner(Object.assign({},u,{text:gccStripRemember(u&&u.text,false)}));}catch(e){}}});}
   }
+  if(!gccAllow('think',1)){ gccNap('think'); var nap=gccNapText(); gccMarkAi(nap); if(typeof opts.onText==='function'){try{opts.onText({text:nap});}catch(e){}} return {text:nap,napping:true}; }
   var r=await base(req,opts);
+  gccUse('think',1);
   var text=(r&&r.text)||'';
   if(personal){ text=gccStripRemember(text,true); }
   if(isGrandpaPrompt(req)||opts.gccNoMemory) gccMarkAi(text.split('\n').filter(function(l){return !/^\s*[*_#>\-\s]*ARROWS?\b/i.test(l);}).join(' '));
   return Object.assign({},r,{text:text});
  };
  w.limits=base.limits?base.limits.bind(base):async function(){return {images:false};};
- w.json=base.json?base.json.bind(base):undefined;
+ w.json=base.json?async function(req,opts){ if(!gccAllow('think',1)){ gccNap('think'); return null; } var j=await base.json(req,opts); gccUse('think',1); return j; }:undefined;
  w.__gccWrapped=true;
  return w;
 }
@@ -755,7 +757,8 @@ function b64ToBlob(b64,mime){
  for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
  return new Blob([arr],{type:mime});
 }
-async function elevenSpeak(t){
+async function elevenSpeak(t){ if(typeof gccAllow==='function' && !gccAllow('voice',String(t).length)){ gccNap('voice'); return {ok:true,napping:true}; } const r=await elevenSpeakMain(t); if(r&&r.ok&&typeof gccUse==='function') gccUse('voice',String(t).length); if(r&&!r.ok){ console.warn('voice failed',r.error); if(typeof gccDev!=='undefined'&&gccDev){ try{ addSystem('🔧 [developer] voice: '+r.error); }catch(e){} } } return r; }
+async function elevenSpeakMain(t){
  const name=getElevenVoiceName();
  if(!name) return {ok:false,error:'No voice name saved yet — open ⚙️ REAL VOICE SETUP and enter it.'};
  elevenPending=true;
@@ -897,7 +900,7 @@ function speak(t,w){
  if(w==='coach' && typeof gccPersonalSpeak==='function' && typeof gccCurrentPlayer==='function' && gccCurrentPlayer() && !gccIsAiText(t)){
   const personal=gccPersonalSpeak(t,w); if(!personal) return; t=personal;
  }
- if(w==='coach'){ try{ gccBubble(t); }catch(e){} }
+ if(w==='coach'){ try{ if(!gccThinkTimer) gccBubble(t); }catch(e){} }
  if(w==='coach' && getLanguageCode()!=='en' && looksLikeEnglish(t,3) && !(typeof gccIsAiText==='function' && gccIsAiText(t))){
   const key=getLanguageCode()+'|'+t;
   if(builtInTranslations[key]){ t=builtInTranslations[key]; }
@@ -976,7 +979,7 @@ function speakDeviceOnly(t,w){
  delete gccVoiceRetries[k];
  gccVoiceResting();
 }
-function gccVoiceResting(){ if(gccVoiceNoticeShown) return; gccVoiceNoticeShown=true; try{ addSystem('🔇 Grandpa\'s voice can\'t be reached for a moment — his words are right here on the screen. He\'ll speak again as soon as the connection is back.'); }catch(e){} setTimeout(function(){gccVoiceNoticeShown=false;},60000); }
+function gccVoiceResting(){ if(gccVoiceNoticeShown) return; gccVoiceNoticeShown=true; try{ gccBubbleNote('🔇 Grandpa\'s voice will be back in a moment — his words are right here.'); }catch(e){} try{ if(typeof gccDev!=='undefined'&&gccDev) addSystem('🔇 Grandpa\'s voice can\'t be reached for a moment — his words are right here on the screen. He\'ll speak again as soon as the connection is back.'); }catch(e){} setTimeout(function(){gccVoiceNoticeShown=false;},60000); }
 function robotVoiceRemoved_unused(t,w){
  if(!voiceOn)return;if(isStopped)return;if(!('speechSynthesis' in window))return;stopAllAudio(true);deviceSpeechActive=true;markSpeechProgress();
  const langTag=getSpeechLangTag();
@@ -1832,7 +1835,7 @@ function handleAskStop(){
 async function sendMessage(){
  const input=document.getElementById('liveInput');const txt=input.value.trim();if(!txt)return;
  const name=getName();
- addMsg('student',((typeof gccCurrentPlayer==='function'&&gccCurrentPlayer()&&gccCurrentPlayer().name)||'You')+': ',txt,true);input.value='';
+ addMsg('student',((typeof gccCurrentPlayer==='function'&&gccCurrentPlayer()&&gccCurrentPlayer().name)||'You')+': ',txt,true);input.value=''; try{ gccBubbleAsked(txt); }catch(e){}
  isStopped=false; syncStopBtn(); /* Don asked out loud for an answer — un-mute, the same as tapping ANALYZE */ /* shown, NOT read aloud — hearing your own question in Grandpa's voice sounded like he was repeating it instead of answering */
  speak('Let me think about that.','coach');
  const cap=await getSampleCap();
@@ -1859,12 +1862,13 @@ async function sendMessage(){
    if(retryText.split(/\s+/).filter(Boolean).length>=4) text=retryText;
   }
   if(!text){ text="Sorry — that didn't come through right. Could you ask that again?"; }
-  txtNode.textContent=text;
+  txtNode.textContent=text; try{ gccBubble(text); }catch(e){}
   chatTurns.push({role:'assistant',content:text});
   const sp=document.createElement('button');sp.className='speakerBtn';sp.textContent='🔊';sp.onclick=()=>{isStopped=false;speak(text,'coach');};div.appendChild(sp);
   isStopped=false; speak(text,'coach');
  }catch(e){
   chatTurns.pop();
+  try{ gccThinkStop(); }catch(_e){}
   txtNode.textContent="Sorry — I couldn't think that through just now"+(gccDev&&e&&e.message?(' ('+e.message+')'):'')+". Try again in a moment.";
  }
 }
@@ -3372,10 +3376,10 @@ const tacticContainer=document.getElementById('tacticContainer');tactics.forEach
 /* build 87: Grandpa's words show in a speech bubble right under the board, so it is clear who is talking. */
 function gccBubble(text,thinking){
  var b=document.getElementById('gpBubble'),t=document.getElementById('gpBubbleText'); if(!b||!t) return;
- if(thinking){ b.classList.add('thinking'); t.textContent='Grandpa is looking at the board…'; b.style.display='block'; return; }
+ if(thinking){ b.classList.add('thinking'); t.textContent='Grandpa is looking at the board…'; b.style.display='block'; gccThinkStart(t,'Grandpa is looking at the board…'); return; }
  text=String(text||'').replace(/(^|\n)[\s*_#>\-]*ARROWS?\s*[:\-–—][^\n]*$/i,'').trim(); if(!text) return;
  var cur=t.textContent||''; if(!b.classList.contains('thinking') && b.style.display==='block' && cur.length>text.length && cur.indexOf(text.slice(0,Math.min(40,text.length)))!==-1) return;
- b.classList.remove('thinking'); t.textContent=text; b.style.display='block';
+ gccThinkStop(); b.classList.remove('thinking'); t.textContent=text; b.style.display='block'; if(text.indexOf('little nap')===-1){ var tu=b.querySelector('.gpTopUp'); if(tu) tu.remove(); }
 }
 /* If Grandpa's thinking can't be reached, try once more by himself, then say so plainly — never the old list of squares. */
 var gccAnalysisRetried=false;
@@ -3384,7 +3388,7 @@ function gccAnalysisTrouble(msg,justMoved){
  if(!gccAnalysisRetried){ gccAnalysisRetried=true; gccBubble('',true); setTimeout(function(){ analyzeBoard(justMoved||undefined); },1500); return; }
  gccAnalysisRetried=false;
  var b=document.getElementById('gpBubble'),t=document.getElementById('gpBubbleText');
- if(b&&t){ b.classList.add('thinking'); t.textContent='Grandpa can\'t reach his thinking right now. Tap 🔍 GRANDPA ANALYZE THIS BOARD in a moment to try again.'; b.style.display='block'; }
+  gccThinkStop(); if(b&&t){ b.classList.add('thinking'); t.textContent='Grandpa can\'t reach his thinking right now. Tap 🔍 GRANDPA ANALYZE THIS BOARD in a moment to try again.'; b.style.display='block'; }
  if(gccDev) addSystem('⚠️ [developer] analysis failed'+(msg?(' ('+msg+')'):''));
 }
 </script>
@@ -3421,6 +3425,65 @@ function gccAskTap(){
  if(input && input.value.trim()){ sendMessage(); return; }
  if(getSpeechRecognition()){ toggleMic(); }
  if(input){ input.focus(); try{ input.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
+}
+</script>
+
+<style>
+/* build 90: one place for Grandpa's words — the bubble under the board. The old message box is for the developer only. */
+body:not(.gccDev) #liveBox{display:none!important}
+#gpBubble .gpNote{margin-top:8px;font:14px Georgia,serif;color:#6B5B45;font-style:italic}
+#gpBubble .gpTopUp{display:block;margin-top:12px;text-align:center;background:#2F5233;color:#fff;font:bold 18px Georgia,serif;padding:14px;border-radius:12px;text-decoration:none;border:3px solid #C9A227}
+#gpBubble .gpAsked{font:italic 16px Georgia,serif;color:#2F5233;margin-bottom:6px}
+</style>
+<script>
+function gccBubbleAsked(q){
+ var b=document.getElementById('gpBubble'),t=document.getElementById('gpBubbleText'); if(!b||!t) return;
+ b.classList.add('thinking'); t.textContent='“'+q+'”\nGrandpa is thinking…'; b.style.display='block'; gccThinkStart(t,'“'+q+'”\nGrandpa is thinking…');
+ try{ b.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+}
+var gccThinkTimer=null;
+function gccThinkStart(t,label){
+ gccThinkStop(); var t0=Date.now();
+ function tick(){ var sec=Math.floor((Date.now()-t0)/1000); t.textContent=label+'  '+sec+(sec===1?' second':' seconds'); }
+ tick(); gccThinkTimer=setInterval(tick,1000);
+}
+function gccThinkStop(){ if(gccThinkTimer){ clearInterval(gccThinkTimer); gccThinkTimer=null; } }
+function gccBubbleNote(n){
+ var b=document.getElementById('gpBubble'); if(!b) return;
+ var el=b.querySelector('.gpNote'); if(!el){ el=document.createElement('div'); el.className='gpNote'; b.appendChild(el); }
+ el.textContent=n; b.style.display='block';
+ clearTimeout(el._t); el._t=setTimeout(function(){ if(el.parentNode) el.remove(); },15000);
+}
+</script>
+
+<script>
+/* ===== GRANDPA NAPS — monthly allowance (build 91) =====
+   Each subscription (this device) gets a monthly allowance of Grandpa's voice and thinking, sized so
+   what a subscriber uses always costs less than what they pay. When it runs out, Grandpa "naps"
+   until the 1st of next month. Change the two numbers below to raise or lower the allowance.
+   Developer view (?dev=1) is never limited, so Don can test freely. */
+var GCC_MONTHLY_VOICE_CHARS=25000;   // ~25 minutes of Grandpa talking (about $4.50 of ElevenLabs credits)
+var GCC_MONTHLY_THINKS=150;          // ~150 answers, analyses and photo readings (about $2 of AI)
+var GCC_USAGE_KEY='gcc_usage_v1';
+function gccMonth(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1);}
+function gccUsage(){try{var u=JSON.parse(localStorage.getItem(GCC_USAGE_KEY)||'null');if(u&&u.m===gccMonth())return u;}catch(e){}return {m:gccMonth(),voice:0,think:0};}
+var GCC_TOPUP_PRICE='$5', GCC_TOPUP_VOICE_CHARS=12000, GCC_TOPUP_THINKS=50;   // one top-up: about 12 more minutes of voice + 50 more answers (about $3 of cost)
+var GCC_TOPUP_URL='index.html#more-time';   // where the "add more time" button goes (connect it to payments later)
+function gccAllow(kind,amt){ if(typeof gccDev!=='undefined'&&gccDev) return true; var u=gccUsage(); return kind==='voice'?(u.voice+amt<=GCC_MONTHLY_VOICE_CHARS+(u.bonusVoice||0)):(u.think+amt<=GCC_MONTHLY_THINKS+(u.bonusThink||0)); }
+/* Call this after a top-up payment succeeds (payments not connected yet). */
+function gccAddTopUp(){ var u=gccUsage(); u.bonusVoice=(u.bonusVoice||0)+GCC_TOPUP_VOICE_CHARS; u.bonusThink=(u.bonusThink||0)+GCC_TOPUP_THINKS; try{localStorage.setItem(GCC_USAGE_KEY,JSON.stringify(u));}catch(e){} }
+function gccTopUpButton(){ var a=document.createElement('a'); a.href=GCC_TOPUP_URL; a.target='_blank'; a.rel='noopener'; a.className='gpTopUp'; a.textContent='➕ Add more time with Grandpa now — '+GCC_TOPUP_PRICE; return a; }
+function gccUse(kind,amt){ var u=gccUsage(); u[kind]=(u[kind]||0)+amt; try{localStorage.setItem(GCC_USAGE_KEY,JSON.stringify(u));}catch(e){} }
+function gccWakeDate(){var d=new Date();var n=new Date(d.getFullYear(),d.getMonth()+1,1);return n.toLocaleDateString(undefined,{month:'long',day:'numeric'});}
+function gccNapText(){
+ var p=(typeof gccCurrentPlayer==='function')?gccCurrentPlayer():null; var nm=(p&&p.name)?(', '+p.name):'';
+ return 'I\'m so delighted you\'re enjoying our games together'+nm+'! 😊 We\'ve had a wonderful month — so wonderful that we\'ve used up all of this month\'s coaching time. Every word I speak in my own voice and every board I study takes a little something to run, and your plan includes a set amount each month. So Grandpa is pausing for a little nap 😴 I\'ll be rested and back at the board with you on '+gccWakeDate()+'. Or, if you can\'t wait — and I hope you can\'t! — you can add more time with me right now for '+GCC_TOPUP_PRICE+'.';
+}
+function gccNap(kind){
+ try{
+  if(kind==='voice'){ if(!gccAllow('think',1)) return; gccBubbleNote('😴 Grandpa\'s voice is pausing until '+gccWakeDate()+' — he will keep writing to you right here. Add more time for '+GCC_TOPUP_PRICE+' to hear him again now.'); var b2=document.getElementById('gpBubble'); if(b2&&!b2.querySelector('.gpTopUp')) b2.appendChild(gccTopUpButton()); }
+  else { gccThinkStop(); var b=document.getElementById('gpBubble'),t=document.getElementById('gpBubbleText'); if(b&&t){ b.classList.add('thinking'); t.textContent=gccNapText(); b.style.display='block'; var nt=b.querySelector('.gpNote'); if(nt) nt.remove(); if(!b.querySelector('.gpTopUp')) b.appendChild(gccTopUpButton()); } }
+ }catch(e){}
 }
 </script>
 </body></html>

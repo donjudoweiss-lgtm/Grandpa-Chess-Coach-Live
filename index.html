@@ -53,6 +53,11 @@ body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:
 #magic.go .spark{animation:spark 1.6s ease-out both}
 @keyframes spark{0%{opacity:0;transform:translate(0,0) scale(.4)}20%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.2)}}
 #subscribe{width:100%;margin-top:2rem;padding:2rem 1.25rem;border:1.5px solid var(--logo-gold);border-radius:18px;background:var(--sand);display:flex;flex-direction:column;align-items:center;gap:.6rem}
+#subscribe .plans{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;width:100%;margin:.4rem 0}
+#subscribe .plan{flex:1 1 180px;min-width:0;background:var(--cream);border:1.5px solid var(--line);border-radius:14px;padding:.9rem .75rem;display:flex;flex-direction:column;align-items:center}
+#subscribe .plan.kid{border-color:var(--logo-gold)}
+#subscribe .pl{font:700 1rem Gelasio,Georgia,serif;color:var(--green-d)}
+#subscribe .plan .price{margin:.2rem 0 0;font-size:2.2rem}
 #subscribe[hidden]{display:none}
 #subscribe h2{font:700 1.9rem Gelasio,Georgia,serif;color:var(--green-d);margin:0;text-wrap:balance}
 #subscribe .price{font:700 2.6rem Gelasio,Georgia,serif;color:var(--ink);margin:.4rem 0 0;font-variant-numeric:tabular-nums}
@@ -139,7 +144,10 @@ body{margin:0}
     <section id="subscribe" hidden aria-labelledby="subTitle">
       <h2 id="subTitle">Subscribe to Grandpa Chess Coach</h2>
       <p>For all ages and skill levels.</p>
-      <div class="price">$14.99 <small>a month</small></div>
+      <div class="plans">
+        <div class="plan"><span class="pl">Grandpa Chess Coach</span><div class="price">$17.99 <small>a month</small></div></div>
+        <div class="plan kid"><span class="pl">Teaching a child?</span><div class="price">$15.99 <small>a month</small></div></div>
+      </div>
       <p>Start with a 3-day free trial.</p>
       <a class="go" href="app.html" target="_blank" rel="noopener">Start my free trial</a>
     </section>
