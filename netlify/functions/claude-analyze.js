@@ -60,20 +60,39 @@ exports.handler = async function (event) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing prompt or messages.' }) };
   }
 
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+  // SPEED (Oct 2026): Claude Sonnet 5 "thinks" at HIGH effort by default, which made Grandpa take
+  // 1-2 minutes per answer. Grandpa's coaching talk now answers right away (no long thinking);
+  // reading a photo keeps a short, LOW-effort look so the pieces are still read carefully.
+  const hasImage = !!imageBase64;
+  const requestBody = {
+    model: 'claude-sonnet-5',
+    max_tokens: hasImage ? 3000 : 1200,
+    messages: messages,
+    output_config: { effort: 'low' }
+  };
+  if (!hasImage) requestBody.thinking = { type: 'disabled' };
+
+  async function callAnthropic(body) {
+    return fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json'
       },
-      body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 4096,
-        messages: messages
-      })
+      body: JSON.stringify(body)
     });
+  }
+
+  try {
+    let resp = await callAnthropic(requestBody);
+    // Safety net: if Anthropic ever rejects the speed settings, ask again the plain way.
+    if (resp.status === 400) {
+      const peek = await resp.clone().text().catch(() => '');
+      if (/output_config|effort|thinking/i.test(peek)) {
+        resp = await callAnthropic({ model: 'claude-sonnet-5', max_tokens: 4096, messages: messages });
+      }
+    }
 
     if (!resp.ok) {
       const bodyText = await resp.text().catch(() => '');
