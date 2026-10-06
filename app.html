@@ -166,7 +166,7 @@ input[type=file]{display:none}
 <div id="readStatus" style="display:none;max-width:500px;margin:6px auto;padding:14px;background:#2563eb;color:#fff;border:3px solid #fff;border-radius:14px;font-size:19px;font-weight:bold;text-align:center"></div>
 <div id="photoActions" style="display:none;max-width:500px;margin:0 auto;padding:0 6px">
 <button id="turnPhotoBtn" onclick="toggleBoardView()" style="margin:8px auto 0;display:block;width:100%;background:#FACC15;color:#000;border:4px solid #fff;border-radius:14px;padding:12px;font-size:18px;font-weight:bold">🔄 TURN BOARD TO MATCH PHOTO</button>
-<button id="autoPopBtn" class="longBtn" style="background:#2563eb;color:#fff;border:4px solid #fff;margin:8px 0 0" onclick="autoPopulateLastPhoto()">🧠 AUTO-POPULATE FROM PHOTO</button>
+<button id="autoPopBtn" class="longBtn gccDevOnly" style="background:#2563eb;color:#fff;border:4px solid #fff;margin:8px 0 0" onclick="autoPopulateLastPhoto()">🧠 AUTO-POPULATE FROM PHOTO</button>
 <button id="delPhotoBtn" onclick="deleteLatestPhoto()" style="margin:8px auto 0;display:block;background:#333;color:#fff;border:2px solid #888;border-radius:10px;padding:8px 16px;font-size:15px">🗑️ Delete this photo</button>
 </div>
 <div id="readCheckPanel" style="display:none;max-width:500px;margin:8px auto;padding:16px;background:#222;border:4px solid #FACC15;border-radius:16px;color:#fff;text-align:center"></div>
@@ -174,8 +174,9 @@ input[type=file]{display:none}
 <div class="sliderRow"><label>👻 photo on board</label><input type="range" id="overlayOpacity" min="10" max="100" value="85"></div>
 <button class="overlayOffBtn" id="overlayOffBtn" onclick="closeAllPhotos()">✕ CLOSE PHOTOS</button>
 </div>
+<div id="trayHint" class="trayHint">➕ Tap a piece here to fill in or change a square — or tap ERASE to empty a square.</div>
 <div class="pickerWrap"><div class="picker"><div class="pick" data-c="wK"><div class="circlePick w"></div></div><div class="pick" data-c="wQ"><div class="circlePick w"></div></div><div class="pick" data-c="wR"><div class="circlePick w"></div></div><div class="pick" data-c="wB"><div class="circlePick w"></div></div><div class="pick" data-c="wN"><div class="circlePick w"></div></div><div class="pick" data-c="wP"><div class="circlePick w"></div></div></div><div class="picker"><div class="pick" data-c="bK"><div class="circlePick b"></div></div><div class="pick" data-c="bQ"><div class="circlePick b"></div></div><div class="pick" data-c="bR"><div class="circlePick b"></div></div><div class="pick" data-c="bB"><div class="circlePick b"></div></div><div class="pick" data-c="bN"><div class="circlePick b"></div></div><div class="pick" data-c="bP"><div class="circlePick b"></div></div></div></div>
-<div class="smallBtns"><button class="btnSmall" style="background:#FACC15;color:#000" onclick="openCameraGuide()">📸 TAKE PICTURE</button><button class="btnSmall" id="moveModeBtn" style="background:#9b59b6;color:#fff" onclick="toggleMoveMode()">🎯 MAKE A MOVE</button><button class="btnSmall" id="grandpaMoveBtn" style="background:#16a085;color:#fff" onclick="grandpaTakesTurn()">♟️ GRANDPA, MAKE YOUR RECOMMENDED MOVE</button><button class="btnSmall erase" id="eraseBtn">ERASE</button><button class="btnSmall reset" id="resetBtn">RESET</button><button class="btnSmall btnAnalyze" onclick="analyzeBoard()">🔍 GRANDPA ANALYZE THIS BOARD</button><button class="btnSmall" id="togglePhotosBtn" style="background:#FACC15;color:#000" onclick="togglePhotoGallery()">✕ CLOSE PHOTO</button>
+<div class="smallBtns"><button class="btnSmall" style="background:#FACC15;color:#000" onclick="openCameraGuide()">📸 TAKE PICTURE</button><button class="btnSmall" id="moveModeBtn" style="background:#9b59b6;color:#fff" onclick="toggleMoveMode()">🎯 MAKE A MOVE</button><button class="btnSmall" id="grandpaMoveBtn" style="background:#16a085;color:#fff" onclick="grandpaTakesTurn()">♟️ GRANDPA, MAKE YOUR RECOMMENDED MOVE</button><button class="btnSmall erase" id="eraseBtn">ERASE</button><button class="btnSmall reset" id="resetBtn">RESET</button><button class="btnSmall btnAnalyze gccDevOnly" onclick="analyzeBoard()">🔍 GRANDPA ANALYZE THIS BOARD</button><button class="btnSmall" id="togglePhotosBtn" style="background:#FACC15;color:#000" onclick="togglePhotoGallery()">✕ CLOSE PHOTO</button>
 <div id="livePane" class="pane on" style="display:block;max-width:500px;margin:0 auto;padding:0 6px"><div class="liveBox" id="liveBox"></div><div class="askArea">
 <button class="longBtn" id="askStopBtn" onclick="gccAskTap()" style="background:#3498db;color:#fff;border:5px solid #fff;font-size:22px;padding:22px;box-shadow:0 0 14px rgba(52,152,219,0.7);margin:0">🎤 TAP HERE TO ASK GRANDPA</button>
 <div class="askArrow">⬇ then speak — or type your question here ⬇</div>
@@ -757,7 +758,7 @@ function b64ToBlob(b64,mime){
  for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
  return new Blob([arr],{type:mime});
 }
-async function elevenSpeak(t){ if(typeof gccAllow==='function' && !gccAllow('voice',String(t).length)){ gccNap('voice'); return {ok:true,napping:true}; } const r=await elevenSpeakMain(t); if(r&&r.ok&&typeof gccUse==='function') gccUse('voice',String(t).length); if(r&&!r.ok){ console.warn('voice failed',r.error); if(typeof gccDev!=='undefined'&&gccDev){ try{ addSystem('🔧 [developer] voice: '+r.error); }catch(e){} } } return r; }
+async function elevenSpeak(t){ gccTrace('asking ElevenLabs for '+String(t).length+' letters'); if(typeof gccAllow==='function' && !gccAllow('voice',String(t).length)){ gccNap('voice'); return {ok:true,napping:true}; } const r=await elevenSpeakMain(t); gccTrace(r&&r.ok?'ElevenLabs OK — playing':'ElevenLabs FAILED: '+(r&&r.error)); if(r&&r.ok&&typeof gccUse==='function') gccUse('voice',String(t).length); if(r&&!r.ok){ console.warn('voice failed',r.error); if(typeof gccDev!=='undefined'&&gccDev){ try{ addSystem('🔧 [developer] voice: '+r.error); }catch(e){} } } return r; }
 async function elevenSpeakMain(t){
  const name=getElevenVoiceName();
  if(!name) return {ok:false,error:'No voice name saved yet — open ⚙️ REAL VOICE SETUP and enter it.'};
@@ -791,7 +792,7 @@ async function elevenSpeakInner(t,name){
   catch(e){
    grandpaPlayerBusy=false; grandpaPlayerUnlocked=false;
    // Blocked by the phone — keep the REAL voice: one tap on the big button plays it.
-   showTapToHear(function(){ aud.src=url; grandpaPlayerBusy=true; const pr=aud.play(); if(pr&&pr.catch) pr.catch(function(){}); });
+   gccTrace('phone BLOCKED the sound — showing TAP TO HEAR button: '+(e&&e.message)); showTapToHear(function(){ aud.src=url; grandpaPlayerBusy=true; const pr=aud.play(); if(pr&&pr.catch) pr.catch(function(){}); });
   }
   return {ok:true};
  }catch(e){return {ok:false,error:'Could not reach the Netlify relay: '+e.message+'. Check that '+ELEVEN_RELAY_URL+' is online and the function is deployed.'};}
@@ -892,6 +893,7 @@ function setVoiceMode(m){try{localStorage.setItem(VOICE_MODE_KEY,m);}catch(e){}
  addSystem('🔊 Coach voice set to: '+(labels[m]||m));
 }
 function speak(t,w){
+ if(typeof gccDev!=='undefined'&&gccDev&&w==='coach'){ try{ gccTrace('speak called'+(isStopped?' — but STOPPED':'')+(!voiceOn?' — but voice OFF':'')+(isGrandpaSpeaking()?' — waiting, Grandpa marked as already speaking':'')); }catch(e){} }
 // STOPPED = silent
  if(isStopped) return;
  if(!voiceOn) return;
@@ -2602,8 +2604,9 @@ function scrollToPhotoAndBoard(){
  const target=(strip && strip.style.display!=='none')?document.getElementById('photoCompareTop'):document.getElementById('boardStack');
  target.scrollIntoView({behavior:'smooth',block:'start'});
 }
-const HAND_FIX_HELP='<b>Fix the wrong squares:</b><br>'+
- '👆 Tap any wrong square on the board. Big buttons pop up — tap the piece that belongs there, or <b>MAKE IT EMPTY</b>.<br><br>'+
+const HAND_FIX_HELP='<b>Fix the wrong squares — two easy ways:</b><br>'+
+ '👆 <b>1.</b> Tap any wrong square on the board. Big buttons pop up — tap the piece that belongs there, or <b>MAKE IT EMPTY</b>.<br>'+
+ '♞ <b>2.</b> Or use the <b>row of pieces right under the board</b>: tap a piece there, then tap the square where it belongs. Tap more squares to place more of the same piece.<br><br>'+
  '<b>When the board matches your real board, tap one of these:</b>';
 const DONE_FIXING_BUTTONS=[
  {label:'✅ DONE — and it\'s MY turn to move',value:'keep',bg:'#2ecc71',fg:'#000'},
@@ -3388,7 +3391,7 @@ function gccAnalysisTrouble(msg,justMoved){
  if(!gccAnalysisRetried){ gccAnalysisRetried=true; gccBubble('',true); setTimeout(function(){ analyzeBoard(justMoved||undefined); },1500); return; }
  gccAnalysisRetried=false;
  var b=document.getElementById('gpBubble'),t=document.getElementById('gpBubbleText');
-  gccThinkStop(); if(b&&t){ b.classList.add('thinking'); t.textContent='Grandpa can\'t reach his thinking right now. Tap 🔍 GRANDPA ANALYZE THIS BOARD in a moment to try again.'; b.style.display='block'; }
+  gccThinkStop(); if(b&&t){ b.classList.add('thinking'); t.textContent='Grandpa can\'t reach his thinking right now.'; b.style.display='block'; if(!b.querySelector('.gpRetry')){ var rb=document.createElement('button'); rb.className='gpRetry'; rb.textContent='🔄 Tap here and Grandpa will try again'; rb.onclick=function(){ rb.remove(); analyzeBoard(); }; b.appendChild(rb); } }
  if(gccDev) addSystem('⚠️ [developer] analysis failed'+(msg?(' ('+msg+')'):''));
 }
 </script>
@@ -3433,6 +3436,7 @@ function gccAskTap(){
 body:not(.gccDev) #liveBox{display:none!important}
 #gpBubble .gpNote{margin-top:8px;font:14px Georgia,serif;color:#6B5B45;font-style:italic}
 #gpBubble .gpTopUp{display:block;margin-top:12px;text-align:center;background:#2F5233;color:#fff;font:bold 18px Georgia,serif;padding:14px;border-radius:12px;text-decoration:none;border:3px solid #C9A227}
+#gpBubble .gpRetry{display:block;width:100%;margin-top:10px;background:#2563eb;color:#fff;font:bold 17px Georgia,serif;padding:12px;border-radius:12px;border:3px solid #C9A227;cursor:pointer}
 #gpBubble .gpAsked{font:italic 16px Georgia,serif;color:#2F5233;margin-bottom:6px}
 </style>
 <script>
@@ -3485,5 +3489,40 @@ function gccNap(kind){
   else { gccThinkStop(); var b=document.getElementById('gpBubble'),t=document.getElementById('gpBubbleText'); if(b&&t){ b.classList.add('thinking'); t.textContent=gccNapText(); b.style.display='block'; var nt=b.querySelector('.gpNote'); if(nt) nt.remove(); if(!b.querySelector('.gpTopUp')) b.appendChild(gccTopUpButton()); } }
  }catch(e){}
 }
+</script>
+
+<script>
+/* developer-only trace of Grandpa's voice, shown in the bubble area when ?dev=1 */
+function gccTrace(msg){
+ try{ if(typeof gccDev==='undefined'||!gccDev) return; console.log('[voice]',msg);
+  var box=document.getElementById('gccTraceBox');
+  if(!box){ box=document.createElement('div'); box.id='gccTraceBox'; box.style.cssText='max-width:500px;margin:6px auto;background:#111;color:#0f0;font:13px monospace;padding:8px;border:2px solid #0f0;border-radius:8px;white-space:pre-wrap;text-align:left'; var b=document.getElementById('gpBubble'); if(b&&b.parentNode) b.parentNode.insertBefore(box,b.nextSibling); else document.body.appendChild(box); box.textContent='🔧 VOICE TRACE (developer only)'; }
+  box.textContent+='\n'+new Date().toLocaleTimeString()+'  '+msg; }catch(e){}
+}
+</script>
+
+<style>
+.trayHint{max-width:500px;margin:10px auto 4px;padding:8px 12px;text-align:center;color:#FACC15;font-size:17px;font-weight:bold;border-radius:10px}
+.trayHint.active{background:#FACC15;color:#000}
+</style>
+<script>
+/* build 92: the piece tray says what to do, and tapping the chosen piece again puts it away. */
+(function(){
+ var NAMES={K:'king',Q:'queen',R:'rook',B:'bishop',N:'knight',P:'pawn'};
+ var hint=document.getElementById('trayHint');
+ function reset(){ if(hint){ hint.classList.remove('active'); hint.textContent='➕ Tap a piece here to fill in or change a square — or tap ERASE to empty a square.'; } }
+ document.querySelectorAll('.pick').forEach(function(el){
+  var orig=el.onclick;
+  el.onclick=function(){
+   if(el.classList.contains('on') && sel && sel.c===el.dataset.c){ el.classList.remove('on'); sel=null; reset(); return; }
+   orig&&orig.call(el);
+   var c=el.dataset.c; if(hint){ hint.classList.add('active'); hint.textContent='👆 Now tap the square where the '+(c[0]==='w'?'white ':'black ')+NAMES[c.slice(1)]+' goes. (Tap the piece again when you are finished.)'; }
+  };
+ });
+ var eb=document.getElementById('eraseBtn'); if(eb){ eb.addEventListener('click',function(){ document.querySelectorAll('.pick').forEach(function(x){x.classList.remove('on');}); if(hint){ hint.classList.add('active'); hint.textContent='🧽 Now tap the square you want to empty. (Tap a piece in this row when you want to fill squares again.)'; } }); }
+ /* when the board is confirmed (DONE / YES), put the chosen tray piece away so a tap can't drop it by accident */
+ var origReady=window.boardIsReady;
+ if(typeof origReady==='function'){ window.boardIsReady=function(turn){ try{ sel=null; document.querySelectorAll('.pick').forEach(function(x){x.classList.remove('on');}); reset(); }catch(e){} return origReady.apply(this,arguments); }; }
+})();
 </script>
 </body></html>
