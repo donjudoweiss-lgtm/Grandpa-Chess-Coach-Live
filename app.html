@@ -499,6 +499,7 @@ input[type=file]{display:none}
 #gccMeet .opts{display:flex;flex-direction:column;gap:10px}
 #gccMeet button{font-size:20px;font-weight:bold;padding:15px;border-radius:14px;border:3px solid #fff;cursor:pointer;background:#2F5233;color:#fff;box-shadow:0 0 0 2px #C9A227}
 #gccMeet button.alt{background:#fff;color:#231A10;box-shadow:0 0 0 2px #C9A227}
+#gccMeet .opt{color:#6B5B45;font-size:16px;font-style:italic}
 #gccMeet small{display:block;margin-top:12px;color:#6B5B45;font-size:14px}
 </style>
 <script>
@@ -517,7 +518,8 @@ function gccEsc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&
 /* What Grandpa knows about the player — added to every one of Grandpa's own answers. */
 function gccPlayerContext(withMemoryRule){
  var p=gccCurrentPlayer(); if(!p) return '';
- var s='\n\nABOUT THE PLAYER — you are speaking ONLY to '+p.name+'. ';
+ if(!p.name){ p=Object.assign({},p,{name:'this player'}); }
+ var s='\n\nABOUT THE PLAYER — you are speaking ONLY to '+p.name+(p.name==='this player'?' (they chose not to give a name — never ask for it, and speak warmly without using a name)':'')+'. ';
  if(p.age) s+=p.name+'\'s age group: '+p.age+'. ';
  if(p.level) s+='Chess experience: '+p.level+'. ';
  s+='Talk to '+p.name+' personally, use their name now and then, and choose words, depth and pace that fit their age and experience. Never use stock phrases, set speeches or generic lines — everything you say is for '+p.name+' alone, about this game, right now. ';
@@ -576,6 +578,7 @@ async function gccPersonalize(t){
  var p=gccCurrentPlayer();
  try{
   var cap=await getSampleCap(); if(!cap||!p) return t;
+  if(!p.name) p=Object.assign({},p,{name:'the player'});
   var prompt='You are Grandpa Don, an American grandfather from New York, '+grandpaSpeechPhrase()+', a warm chess coach sitting beside '+p.name+' at a real chess board. The program needs you to tell '+p.name+' the following. Say it to '+p.name+' in your own warm, natural words — short (one or two sentences), the same meaning and the same instructions, keeping every button name, square name and number exactly as written. Do not add anything new.\n\nWhat to tell '+p.name+': "'+t+'"'+gccPlayerContext(false)+'\n\nReply with ONLY what Grandpa says out loud.';
   var r=await Promise.race([cap(prompt,{modelTier:'complex',gccNoMemory:true}),new Promise(function(res){setTimeout(function(){res(null);},4000);})]);
   var out=(r&&r.text||'').trim().replace(/^["“]|["”]$/g,'');
@@ -600,33 +603,32 @@ function gccWho(){
  var d=gccLoad();
  if(!d.players.length){ gccMeetName(); return; }
  var h='<h2>Who’s playing today?</h2><p>Tap your name.</p><div class="opts">';
- d.players.forEach(function(p){h+='<button onclick="gccChoose(\''+p.id+'\')">'+gccEsc(p.name)+'</button>';});
+ d.players.forEach(function(p,ix){h+='<button onclick="gccChoose(\''+p.id+'\')">'+gccEsc(p.name||('Player '+(ix+1)))+'</button>';});
  h+='<button class="alt" onclick="gccMeetName()">Someone new</button></div>';
  gccShow(h);
 }
 function gccMeetName(){
- gccShow('<h2>Hello! I’m Grandpa.</h2><p>What’s your name?</p><input id="gccNameIn" maxlength="30" placeholder="First name or nickname" autocomplete="off"><div class="opts"><button onclick="gccMeetAge()">Next</button></div><small>Your name and Grandpa’s notes stay on this device only.</small>');
+ gccShow('<h2>Hello! I’m Grandpa.</h2><p>What’s your name? <span class="opt">(optional)</span></p><input id="gccNameIn" maxlength="30" placeholder="First name or nickname" autocomplete="off"><div class="opts"><button onclick="gccMeetAge()">Next</button><button class="alt" onclick="gccMeetAge(true)">Skip</button></div><small>Your name and age are optional. Your answers and Grandpa’s notes stay on this device only.</small>');
  setTimeout(function(){var i=document.getElementById('gccNameIn');if(i){i.focus();i.addEventListener('keydown',function(e){if(e.key==='Enter')gccMeetAge();});}},50);
 }
 var gccNewName='';
-function gccMeetAge(){
- var i=document.getElementById('gccNameIn');var n=(i&&i.value||'').trim();
- if(!n){if(i)i.focus();return;}
+function gccMeetAge(skip){
+ var i=document.getElementById('gccNameIn');var n=skip?'':(i&&i.value||'').trim();
  gccNewName=n.slice(0,30);
- var h='<h2>Nice to meet you, '+gccEsc(gccNewName)+'!</h2><p>How old are you?</p><div class="opts">';
+ var h='<h2>'+(gccNewName?('Nice to meet you, '+gccEsc(gccNewName)+'!'):'Nice to meet you!')+'</h2><p>How old are you? <span class="opt">(optional)</span></p><div class="opts">';
  GCC_AGES.forEach(function(a,k){h+='<button onclick="gccMeetLevel('+k+')">'+a+'</button>';});
- gccShow(h+'</div>');
+ gccShow(h+'<button class="alt" onclick="gccMeetLevel(-1)">Skip</button></div>');
 }
 var gccNewAge='';
 function gccMeetLevel(k){
- gccNewAge=GCC_AGES[k];
- var h='<h2>And chess, '+gccEsc(gccNewName)+'?</h2><p>How much have you played?</p><div class="opts">';
+ gccNewAge=k>=0?GCC_AGES[k]:'';
+ var h='<h2>And chess'+(gccNewName?(', '+gccEsc(gccNewName)):'')+'?</h2><p>How much have you played?</p><div class="opts">';
  GCC_LEVELS.forEach(function(a,j){h+='<button onclick="gccMeetDone('+j+')">'+a+'</button>';});
  gccShow(h+'</div>');
 }
 function gccMeetDone(j){
  var d=gccLoad();
- var p={id:'p'+Date.now().toString(36),name:gccNewName,age:gccNewAge,level:GCC_LEVELS[j],notes:[],games:0,created:new Date().toISOString().slice(0,10)};
+ var p={id:'p'+Date.now().toString(36),name:gccNewName,age:gccNewAge,level:j>=0?GCC_LEVELS[j]:'',notes:[],games:0,created:new Date().toISOString().slice(0,10)};
  d.players.push(p);d.current=p.id;gccSave(d);
  gccStart(true);
 }
@@ -634,8 +636,8 @@ function gccChoose(id){var d=gccLoad();d.current=id;gccSave(d);gccStart(false);}
 function gccStart(isNew){
  gccHide();
  var p=gccCurrentPlayer(); if(!p) return;
- try{ playerNameInput.value=p.name; }catch(e){}
- try{ var ss=document.querySelector('#speakerSel option[value="student"]'); if(ss) ss.textContent=p.name+' — ask'; }catch(e){}
+ try{ playerNameInput.value=p.name||''; }catch(e){}
+ try{ var ss=document.querySelector('#speakerSel option[value="student"]'); if(ss) ss.textContent=(p.name||'Me')+' — ask'; }catch(e){}
  try{ chatTurns=[]; }catch(e){}
  isStopped=false;
  gccGreet(isNew);
@@ -644,6 +646,7 @@ function gccStart(isNew){
 /* Grandpa's hello — written fresh for this player every time. */
 async function gccGreet(isNew){
  var p=gccCurrentPlayer(); if(!p) return;
+ if(!p.name) p=Object.assign({},p,{name:'the player (no name given — do not use or ask for a name)'});
  var div=document.createElement('div');div.className='msg coach';var wh=document.createElement('div');wh.style.cssText='font-size:11px;font-weight:bold';wh.textContent='Grandpa: ';div.appendChild(wh);var tn=document.createElement('span');tn.textContent='…';div.appendChild(tn);liveBox.appendChild(div);liveBox.scrollTop=liveBox.scrollHeight;
  try{
   var cap=await getSampleCap(); if(!cap){div.remove();return;}
@@ -1829,7 +1832,7 @@ function handleAskStop(){
 async function sendMessage(){
  const input=document.getElementById('liveInput');const txt=input.value.trim();if(!txt)return;
  const name=getName();
- addMsg('student',name+': ',txt,true);input.value='';
+ addMsg('student',((typeof gccCurrentPlayer==='function'&&gccCurrentPlayer()&&gccCurrentPlayer().name)||'You')+': ',txt,true);input.value='';
  isStopped=false; syncStopBtn(); /* Don asked out loud for an answer — un-mute, the same as tapping ANALYZE */ /* shown, NOT read aloud — hearing your own question in Grandpa's voice sounded like he was repeating it instead of answering */
  speak('Let me think about that.','coach');
  const cap=await getSampleCap();
