@@ -718,11 +718,8 @@ const WELCOME_GREETING_TEXT="Welcome! Before we play, I suggest you review the f
  function prime(){
   if(primed) return; primed=true;
   try{
-   if('speechSynthesis' in window){
-    const u=new SpeechSynthesisUtterance(' ');
-    u.volume=0.01;
-    speechSynthesis.speak(u);
-   }
+   /* build 98: no more silent robot-voice warm-up — Grandpa only uses his real voice now, and on
+      iPhones the robot voice engine can turn other sound down. */
   }catch(e){}
   document.removeEventListener('touchstart',prime,true);
   document.removeEventListener('click',prime,true);
@@ -2811,6 +2808,14 @@ async function autoPopulateFromPhotoInner(source,photoKind){
   {label:'⚫ Black pieces were closest',value:'black',bg:'#111',fg:'#fff'},
   {label:'Not sure',value:'unsure',bg:'#555',fg:'#fff'}
  ]);
+ /* build 98: the side nearest the camera is the side the player sits on — remember it, so the
+    board shows THEIR pieces at the bottom (a Black player sees Black at the bottom). */
+ if((nearSide==='white'||nearSide==='black') && playingColor!==nearSide){
+  playingColor=nearSide;
+  try{localStorage.setItem(PLAYING_COLOR_KEY,nearSide);}catch(e){}
+  try{document.getElementById('btnPlayWhite').classList.toggle('picked',nearSide==='white');document.getElementById('btnPlayBlack').classList.toggle('picked',nearSide==='black');}catch(e){}
+  try{drawBoard();}catch(e){}
+ }
  const wantSide=await myChoice('For the most accurate reading, take ONE more picture: crouch down so the phone is low and level with the board, standing at the SAME end of the board as before, so every piece\'s shape shows clearly.',[
   {label:'📸 Take the side picture now',value:'yes',bg:'#FACC15',fg:'#000',onPick:openSidePhotoCamera},
   {label:'Skip — just use the first picture',value:'no',bg:'#555',fg:'#fff'}
