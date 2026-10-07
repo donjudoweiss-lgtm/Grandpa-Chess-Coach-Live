@@ -3832,7 +3832,10 @@ function gccHanging(){
    try{ gccBubble(t||line); }catch(e){}
    if(t){ try{ isStopped=false; speak(t,'coach'); }catch(e){} }
   } else {
-   try{ gccBubble('👀 Grandpa is watching — keep playing. Tap Ask Grandpa anytime.'); }catch(e){}
+   /* build 109: never cover up Grandpa's last comment (or his "thinking" counter) on a quiet move —
+      players were losing his words when they moved again quickly. Only fill an empty bubble. */
+   try{ var bb=document.getElementById('gpBubble'), bt=document.getElementById('gpBubbleText');
+    if(bb && bt && (!bt.textContent.trim() || bb.style.display==='none')) gccBubble('👀 Grandpa is watching — keep playing. Tap Ask Grandpa anytime.'); }catch(e){}
   }
  };
 })();
