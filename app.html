@@ -603,45 +603,74 @@ function gccPersonalSpeak(t,w){
 /* ---- Meeting Grandpa / Who's playing? ---- */
 var GCC_AGES=['Under 8','8 to 12','13 to 17','Adult','Senior (65 and up)'];
 var GCC_LEVELS=['Brand new — never played','I know how the pieces move','I play sometimes','I play a lot'];
+/* build 96: the player picks their LANGUAGE first, so Grandpa's very first hello is already in it. */
+var GCC_LANG_BTNS=[['en','English'],['es','Español'],['fr','Français'],['de','Deutsch'],['zh','中文'],['pt','Português'],['vi','Tiếng Việt']];
+var GCC_T={
+ en:{hello:'Hello! I’m Grandpa.',name:'What’s your name?',opt:'(optional)',ph:'First name or nickname',next:'Next',skip:'Skip',privacy:'Your name and age are optional. Your answers and Grandpa’s notes stay on this device only.',nice:'Nice to meet you',age:'How old are you?',chess:'And chess',played:'How much have you played?',who:'Who’s playing today?',tap:'Tap your name.',someone:'Someone new',ages:['Under 8','8 to 12','13 to 17','Adult','Senior (65 and up)'],levels:['Brand new — never played','I know how the pieces move','I play sometimes','I play a lot']},
+ es:{hello:'¡Hola! Soy el Abuelo.',name:'¿Cómo te llamas?',opt:'(opcional)',ph:'Nombre o apodo',next:'Siguiente',skip:'Saltar',privacy:'Tu nombre y edad son opcionales. Tus respuestas y las notas del Abuelo se quedan solo en este aparato.',nice:'Mucho gusto',age:'¿Cuántos años tienes?',chess:'Y el ajedrez',played:'¿Cuánto has jugado?',who:'¿Quién juega hoy?',tap:'Toca tu nombre.',someone:'Alguien nuevo',ages:['Menos de 8','8 a 12','13 a 17','Adulto','Mayor (65 o más)'],levels:['Nuevo — nunca he jugado','Sé cómo se mueven las piezas','Juego a veces','Juego mucho']},
+ fr:{hello:'Bonjour ! Je suis Grand-père.',name:'Comment t’appelles-tu ?',opt:'(facultatif)',ph:'Prénom ou surnom',next:'Suivant',skip:'Passer',privacy:'Ton nom et ton âge sont facultatifs. Tes réponses et les notes de Grand-père restent sur cet appareil.',nice:'Enchanté',age:'Quel âge as-tu ?',chess:'Et les échecs',played:'Tu as beaucoup joué ?',who:'Qui joue aujourd’hui ?',tap:'Touche ton nom.',someone:'Quelqu’un de nouveau',ages:['Moins de 8 ans','8 à 12 ans','13 à 17 ans','Adulte','Senior (65 ans et plus)'],levels:['Débutant — jamais joué','Je sais déplacer les pièces','Je joue parfois','Je joue beaucoup']},
+ de:{hello:'Hallo! Ich bin Opa.',name:'Wie heißt du?',opt:'(freiwillig)',ph:'Vorname oder Spitzname',next:'Weiter',skip:'Überspringen',privacy:'Name und Alter sind freiwillig. Deine Antworten und Opas Notizen bleiben nur auf diesem Gerät.',nice:'Schön, dich kennenzulernen',age:'Wie alt bist du?',chess:'Und Schach',played:'Wie viel hast du schon gespielt?',who:'Wer spielt heute?',tap:'Tippe auf deinen Namen.',someone:'Jemand Neues',ages:['Unter 8','8 bis 12','13 bis 17','Erwachsen','Senior (ab 65)'],levels:['Ganz neu — nie gespielt','Ich weiß, wie die Figuren ziehen','Ich spiele manchmal','Ich spiele viel']},
+ zh:{hello:'你好！我是爷爷。',name:'你叫什么名字？',opt:'（可选）',ph:'名字或昵称',next:'下一步',skip:'跳过',privacy:'名字和年龄可以不填。你的回答和爷爷的笔记只保存在这台设备上。',nice:'很高兴认识你',age:'你几岁了？',chess:'下棋呢',played:'你下过多少国际象棋？',who:'今天谁来下棋？',tap:'点你的名字。',someone:'新朋友',ages:['8岁以下','8到12岁','13到17岁','成年人','长者（65岁以上）'],levels:['完全新手——从没下过','我知道棋子怎么走','我有时下','我经常下']},
+ pt:{hello:'Olá! Eu sou o Vovô.',name:'Qual é o seu nome?',opt:'(opcional)',ph:'Nome ou apelido',next:'Próximo',skip:'Pular',privacy:'Nome e idade são opcionais. Suas respostas e as anotações do Vovô ficam só neste aparelho.',nice:'Prazer em conhecer você',age:'Quantos anos você tem?',chess:'E o xadrez',played:'Quanto você já jogou?',who:'Quem vai jogar hoje?',tap:'Toque no seu nome.',someone:'Alguém novo',ages:['Menos de 8','8 a 12','13 a 17','Adulto','Idoso (65 ou mais)'],levels:['Novato — nunca joguei','Sei como as peças se movem','Jogo às vezes','Jogo muito']},
+ vi:{hello:'Xin chào! Ông đây.',name:'Cháu tên là gì?',opt:'(không bắt buộc)',ph:'Tên hoặc biệt danh',next:'Tiếp',skip:'Bỏ qua',privacy:'Tên và tuổi không bắt buộc. Câu trả lời và ghi chú của Ông chỉ lưu trên máy này.',nice:'Rất vui được gặp cháu',age:'Cháu bao nhiêu tuổi?',chess:'Còn cờ vua',played:'Cháu đã chơi nhiều chưa?',who:'Hôm nay ai chơi?',tap:'Chạm vào tên của cháu.',someone:'Người mới',ages:['Dưới 8','8 đến 12','13 đến 17','Người lớn','Cao tuổi (65 trở lên)'],levels:['Mới hoàn toàn — chưa chơi','Biết cách đi quân','Thỉnh thoảng chơi','Chơi nhiều']}
+};
+function gccTx(k){var c=(typeof getLanguageCode==='function')?getLanguageCode():'en';var t=GCC_T[c]||GCC_T.en;return t[k]!==undefined?t[k]:GCC_T.en[k];}
+var gccNewLang='';
+function gccMeetLang(){
+ var h='<h2>🌐</h2><p>Language · Idioma · Langue · Sprache · 语言 · Ngôn ngữ</p><div class="opts">';
+ GCC_LANG_BTNS.forEach(function(l){h+='<button onclick="gccPickLang(\''+l[0]+'\')">'+l[1]+'</button>';});
+ gccShow(h+'</div>');
+}
+function gccPickLang(code){
+ gccNewLang=code;
+ try{ var lp=document.getElementById('langPicker'); if(lp) lp.value=code; }catch(e){}
+ try{ languageInMemory=code; localStorage.setItem(LANGUAGE_KEY,code); chatTurns=[]; }catch(e){}
+ gccMeetName();
+}
+function gccApplyPlayerLang(p){
+ if(!p||!p.lang) return;
+ try{ var lp=document.getElementById('langPicker'); if(lp) lp.value=p.lang; languageInMemory=p.lang; localStorage.setItem(LANGUAGE_KEY,p.lang); }catch(e){}
+}
 function gccShow(html){var m=document.getElementById('gccMeet');document.getElementById('gccMeetCard').innerHTML=html;m.hidden=false;}
 function gccHide(){document.getElementById('gccMeet').hidden=true;}
 function gccWho(){
  var d=gccLoad();
- if(!d.players.length){ gccMeetName(); return; }
- var h='<h2>Who’s playing today?</h2><p>Tap your name.</p><div class="opts">';
+ if(!d.players.length){ gccMeetLang(); return; }
+ var h='<h2>'+gccTx('who')+'</h2><p>'+gccTx('tap')+'</p><div class="opts">';
  d.players.forEach(function(p,ix){h+='<button onclick="gccChoose(\''+p.id+'\')">'+gccEsc(p.name||('Player '+(ix+1)))+'</button>';});
- h+='<button class="alt" onclick="gccMeetName()">Someone new</button></div>';
+ h+='<button class="alt" onclick="gccMeetLang()">'+gccTx('someone')+'</button></div>';
  gccShow(h);
 }
 function gccMeetName(){
- gccShow('<h2>Hello! I’m Grandpa.</h2><p>What’s your name? <span class="opt">(optional)</span></p><input id="gccNameIn" maxlength="30" placeholder="First name or nickname" autocomplete="off"><div class="opts"><button onclick="gccMeetAge()">Next</button><button class="alt" onclick="gccMeetAge(true)">Skip</button></div><small>Your name and age are optional. Your answers and Grandpa’s notes stay on this device only.</small>');
+ gccShow('<h2>'+gccTx('hello')+'</h2><p>'+gccTx('name')+' <span class="opt">'+gccTx('opt')+'</span></p><input id="gccNameIn" maxlength="30" placeholder="'+gccTx('ph')+'" autocomplete="off"><div class="opts"><button onclick="gccMeetAge()">'+gccTx('next')+'</button><button class="alt" onclick="gccMeetAge(true)">'+gccTx('skip')+'</button></div><small>'+gccTx('privacy')+'</small>');
  setTimeout(function(){var i=document.getElementById('gccNameIn');if(i){i.focus();i.addEventListener('keydown',function(e){if(e.key==='Enter')gccMeetAge();});}},50);
 }
 var gccNewName='';
 function gccMeetAge(skip){
  var i=document.getElementById('gccNameIn');var n=skip?'':(i&&i.value||'').trim();
  gccNewName=n.slice(0,30);
- var h='<h2>'+(gccNewName?('Nice to meet you, '+gccEsc(gccNewName)+'!'):'Nice to meet you!')+'</h2><p>How old are you? <span class="opt">(optional)</span></p><div class="opts">';
- GCC_AGES.forEach(function(a,k){h+='<button onclick="gccMeetLevel('+k+')">'+a+'</button>';});
- gccShow(h+'<button class="alt" onclick="gccMeetLevel(-1)">Skip</button></div>');
+ var h='<h2>'+gccTx('nice')+(gccNewName?(', '+gccEsc(gccNewName)):'')+'!</h2><p>'+gccTx('age')+' <span class="opt">'+gccTx('opt')+'</span></p><div class="opts">';
+ GCC_AGES.forEach(function(a,k){h+='<button onclick="gccMeetLevel('+k+')">'+gccTx('ages')[k]+'</button>';});
+ gccShow(h+'<button class="alt" onclick="gccMeetLevel(-1)">'+gccTx('skip')+'</button></div>');
 }
 var gccNewAge='';
 function gccMeetLevel(k){
  gccNewAge=k>=0?GCC_AGES[k]:'';
- var h='<h2>And chess'+(gccNewName?(', '+gccEsc(gccNewName)):'')+'?</h2><p>How much have you played?</p><div class="opts">';
- GCC_LEVELS.forEach(function(a,j){h+='<button onclick="gccMeetDone('+j+')">'+a+'</button>';});
+ var h='<h2>'+gccTx('chess')+(gccNewName?(', '+gccEsc(gccNewName)):'')+'?</h2><p>'+gccTx('played')+'</p><div class="opts">';
+ GCC_LEVELS.forEach(function(a,j){h+='<button onclick="gccMeetDone('+j+')">'+gccTx('levels')[j]+'</button>';});
  gccShow(h+'</div>');
 }
 function gccMeetDone(j){
  var d=gccLoad();
- var p={id:'p'+Date.now().toString(36),name:gccNewName,age:gccNewAge,level:j>=0?GCC_LEVELS[j]:'',notes:[],games:0,created:new Date().toISOString().slice(0,10)};
+ var p={id:'p'+Date.now().toString(36),name:gccNewName,age:gccNewAge,level:j>=0?GCC_LEVELS[j]:'',notes:[],games:0,lang:gccNewLang||((typeof getLanguageCode==='function')?getLanguageCode():'en'),created:new Date().toISOString().slice(0,10)};
  d.players.push(p);d.current=p.id;gccSave(d);
  gccStart(true);
 }
-function gccChoose(id){var d=gccLoad();d.current=id;gccSave(d);gccStart(false);}
+function gccChoose(id){var d=gccLoad();d.current=id;gccSave(d);gccApplyPlayerLang(gccCurrentPlayer());gccStart(false);}
 function gccStart(isNew){
  gccHide();
  var p=gccCurrentPlayer(); if(!p) return;
+ try{ gccFreshBoard(); }catch(e){}
  try{ playerNameInput.value=p.name||''; }catch(e){}
  try{ var ss=document.querySelector('#speakerSel option[value="student"]'); if(ss) ss.textContent=(p.name||'Me')+' — ask'; }catch(e){}
  try{ chatTurns=[]; }catch(e){}
@@ -660,10 +689,14 @@ async function gccGreet(isNew){
   var cap=await getSampleCap(); if(!cap){div.remove();return;}
   var when=new Date().getHours();var tod=when<12?'morning':(when<17?'afternoon':'evening');
   var prompt='You are Grandpa Don, an American grandfather from New York, '+grandpaSpeechPhrase()+', a warm, patient chess coach. It is '+tod+'. '+(isNew?(p.name+' has just met you for the very first time and told you their name, age group and chess experience. This is your first meeting — do NOT say welcome back. Welcome them warmly by name (say it is lovely to meet them), tell them in a sentence what you two will do together at their real chess board, and invite them to start — the green Play game button takes a picture of their real board.'):(p.name+' has come back to play with you again. Welcome them back warmly by name. If you remember something from earlier that is worth mentioning, mention one thing briefly; then invite them to start — the green Play game button takes a picture of their real board.'))+' Two or three short sentences, the way Grandpa really talks.'+gccPlayerContext(false)+'\n\nReply with ONLY what Grandpa says.';
-  var r=await cap(prompt,{modelTier:'complex',gccNoMemory:true});
+  try{ gccBubble('',true); }catch(e){}
+  var r=null;
+  try{ r=await cap(prompt,{modelTier:'complex',gccNoMemory:true}); }catch(e1){ r=null; }
+  if(!r||!r.text||!String(r.text).trim()){ try{ r=await cap(prompt,{modelTier:'complex',gccNoMemory:true}); }catch(e2){ r=null; } }
   var text=(r&&r.text||'').trim();
-  if(!text){div.remove();return;}
+  if(!text){ try{ gccBubble(gccTx('hello')+' 👋'); }catch(e){} div.remove(); return; }
   tn.textContent=text;gccMarkAi(text);
+  try{ gccBubble(text); }catch(e){}
   var sp=document.createElement('button');sp.className='speakerBtn';sp.textContent='🔊';sp.onclick=function(){isStopped=false;speak(text,'coach');};div.appendChild(sp);
   if(!isStopped) speak(text,'coach');
  }catch(e){div.remove();}
@@ -685,11 +718,8 @@ const WELCOME_GREETING_TEXT="Welcome! Before we play, I suggest you review the f
  function prime(){
   if(primed) return; primed=true;
   try{
-   if('speechSynthesis' in window){
-    const u=new SpeechSynthesisUtterance(' ');
-    u.volume=0.01;
-    speechSynthesis.speak(u);
-   }
+   /* build 98: no more silent robot-voice warm-up — Grandpa only uses his real voice now, and on
+      iPhones the robot voice engine can turn other sound down. */
   }catch(e){}
   document.removeEventListener('touchstart',prime,true);
   document.removeEventListener('click',prime,true);
@@ -774,7 +804,7 @@ function b64ToBlob(b64,mime){
  for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
  return new Blob([arr],{type:mime});
 }
-async function elevenSpeak(t){ gccTrace('asking ElevenLabs for '+String(t).length+' letters'); if(typeof gccAllow==='function' && !gccAllow('voice',String(t).length)){ gccNap('voice'); return {ok:true,napping:true}; } const r=await elevenSpeakMain(t); gccTrace(r&&r.ok?'ElevenLabs OK — playing':'ElevenLabs FAILED: '+(r&&r.error)); if(r&&r.ok&&typeof gccUse==='function') gccUse('voice',String(t).length); if(r&&!r.ok){ console.warn('voice failed',r.error); if(typeof gccDev!=='undefined'&&gccDev){ try{ addSystem('🔧 [developer] voice: '+r.error); }catch(e){} } } return r; }
+async function elevenSpeak(t){ gccTrace('asking ElevenLabs for '+String(t).length+' letters'); var gccVc=String(t).length*((typeof gccVoiceModel==='function'&&gccVoiceModel()==='rich')?2:1); if(typeof gccAllow==='function' && !gccAllow('voice',gccVc)){ gccNap('voice'); return {ok:true,napping:true}; } const r=await elevenSpeakMain(t); gccTrace(r&&r.ok?'ElevenLabs OK — playing':'ElevenLabs FAILED: '+(r&&r.error)); if(r&&r.ok&&typeof gccUse==='function') gccUse('voice',gccVc); if(r&&!r.ok){ console.warn('voice failed',r.error); if(typeof gccDev!=='undefined'&&gccDev){ try{ addSystem('🔧 [developer] voice: '+r.error); }catch(e){} } } return r; }
 async function elevenSpeakMain(t){
  const name=getElevenVoiceName();
  if(!name) return {ok:false,error:'No voice name saved yet — open ⚙️ REAL VOICE SETUP and enter it.'};
@@ -786,7 +816,7 @@ async function elevenSpeakInner(t,name){
   const resp=await fetch(ELEVEN_RELAY_URL,{
    method:'POST',
    headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({text:t,voiceName:name})
+   body:JSON.stringify({text:t,voiceName:name,voiceModel:gccVoiceModel()})
   });
   let data=null;
   try{data=await resp.json();}catch(e){}
@@ -838,7 +868,22 @@ const LANGUAGE_KEY='grandpa_language_v1';
 let languageInMemory=null;
 function getLanguageCode(){const lp=document.getElementById('langPicker');if(lp&&lp.value&&LANGUAGES.some(l=>l.code===lp.value)) return lp.value;if(languageInMemory) return languageInMemory;try{return localStorage.getItem(LANGUAGE_KEY)||'en';}catch(e){return 'en';}}
 function getLanguageName(){const code=getLanguageCode();const found=LANGUAGES.find(l=>l.code===code);return found?found.name:'English';}
-function setLanguage(code){languageInMemory=code;try{localStorage.setItem(LANGUAGE_KEY,code);}catch(e){} chatTurns=[]; addSystem('🌐 Grandpa will now talk with you in '+getLanguageName()+'.');}
+function setLanguage(code){languageInMemory=code;try{localStorage.setItem(LANGUAGE_KEY,code);}catch(e){} chatTurns=[]; addSystem('🌐 Grandpa will now talk with you in '+getLanguageName()+'.');
+ try{ gccUpdateCurrent(function(x){x.lang=code;}); }catch(e){}
+ /* build 96: say one warm sentence in the new language, so the player hears the change right away. */
+ (async function(){
+  try{
+   var meet=document.getElementById('gccMeet'); if(meet && !meet.hidden) return;
+   var cap=await getSampleCap(); if(!cap) return;
+   var nm=getName();
+   try{ gccBubble('',true); }catch(e){}
+   var r=await cap('You are Grandpa Don, a warm grandfather chess coach, '+grandpaSpeechPhrase()+'. '+nm+' just chose to talk with you in '+getLanguageName()+'. Say ONE short, warm sentence in '+getLanguageName()+' telling '+nm+' that from now on you will speak '+getLanguageName()+' together. Reply with ONLY that sentence.',{modelTier:'complex',gccNoMemory:true});
+   var t=(r&&r.text||'').trim(); if(!t) return;
+   try{ gccBubble(t); }catch(e){}
+   isStopped=false; speak(t,'coach');
+  }catch(e){}
+ })();
+}
 function getLangInstruction(){const code=getLanguageCode();if(code==='en')return '';const lang=getLanguageName();return ' IMPORTANT LANGUAGE RULE: You must write your ENTIRE reply in '+lang+'. Do not use any English words at all, not even one. Every single sentence must be in '+lang+', because that is the only language '+getName()+' understands. If you are unsure, still answer fully in '+lang+' — never fall back to English. (Reminder: reply 100% in '+lang+', not English.)';}
 /* build 80: the prompts used to say "speaking plain American English", which fought the language rule — so French/German came back in English. */
 function grandpaSpeechPhrase(){const code=getLanguageCode();return code==='en'?'speaking plain American English':('speaking plain, simple '+getLanguageName()+' (never English)');}
@@ -1333,7 +1378,15 @@ async function commentOnMove(fromAlg,toAlg,pieceLetter,isWhite,capturedLetter){
  }
  try{
   const sideNote=playingColor==='black'?(' '+name+' is playing Black in this game, so look at the position from Black\'s side — help Black find a good answer to whatever White is doing, and judge this move by whether it helps Black\'s side, not White\'s. If the game has wandered off the book defense mentioned earlier, that is completely fine — just keep coaching whatever is actually on the board, never scold '+name+' for not following the suggested line.'):(playingColor==='white'?(' '+name+' is playing White in this game, so judge this move from White\'s side.'):'');
-  const prompt='You are Grandpa Don, an American grandfather from New York, '+grandpaSpeechPhrase()+', a warm, encouraging chess coach sitting right next to '+name+' at a real chess board. '+name+' just moved the '+pieceLabel+' from '+fromAlg+' to '+toAlg+(capturedLabel?(', capturing a '+capturedLabel):'')+'. The full position right now, in FEN piece-placement only, is: '+fen+'. The same position spelled out: '+boardToPieceList(boardState)+sideNote+' Give a short, warm, specific reaction to THIS move — like a real grandpa watching over the board, not a chess engine printing an evaluation. Two or three sentences, plain talk, encouraging even if the move was imperfect. If there was a clearly STRONGER move, gently name it in plain words (for example: that is fine, but bringing the bishop to c4 would have been even stronger) — if the move was the best or close to it, say so. Then finish with ONE short line about what to watch for after the opponent answers. Do NOT give the take-a-picture directions here. Vary your opening words every time — never fall back on the same stock phrase like Good move or Nice move over and over — a real grandpa reacts differently move to move, sometimes surprised, sometimes thoughtful, sometimes playful, based on what actually happened on the board. No markdown.'+((typeof getLangInstruction==='function')?getLangInstruction():'');
+  const oppMove=(playingColor==='white'&&!isWhite)||(playingColor==='black'&&isWhite);
+  if(oppMove){
+   const op='You are Grandpa Don, an American grandfather from New York, '+grandpaSpeechPhrase()+', a warm chess coach sitting next to '+name+'. '+name+' plays '+playingColor+'. The OPPONENT just moved the '+pieceLabel+' from '+fromAlg+' to '+toAlg+(capturedLabel?(', capturing '+name+'\'s '+capturedLabel):'')+'. Position now (FEN piece placement): '+fen+'. Spelled out: '+boardToPieceList(boardState)+' In ONE or TWO short sentences (under 30 words total), tell '+name+' what that move is up to or what to watch out for now — but do NOT name the move '+name+' should play; let '+name+' think. No directions about buttons or pictures. Vary your words every time. No markdown.'+((typeof getLangInstruction==='function')?getLangInstruction():'');
+   const r0=await cap(op,{modelTier:'complex'});
+   const t0=(r0&&r0.text)?r0.text.trim():'';
+   if(t0) addMsg('coach','Coach: ',t0);
+   return;
+  }
+  const prompt='You are Grandpa Don, an American grandfather from New York, '+grandpaSpeechPhrase()+', a warm, encouraging chess coach sitting right next to '+name+' at a real chess board. '+name+' just moved the '+pieceLabel+' from '+fromAlg+' to '+toAlg+(capturedLabel?(', capturing a '+capturedLabel):'')+'. The full position right now, in FEN piece-placement only, is: '+fen+'. The same position spelled out: '+boardToPieceList(boardState)+sideNote+' Give a short, warm, specific reaction to THIS move — like a real grandpa watching over the board, not a chess engine printing an evaluation. ONE or TWO short sentences only (under 35 words total), plain talk, encouraging even if the move was imperfect. If there was a clearly STRONGER move, gently name it in plain words (for example: that is fine, but bringing the bishop to c4 would have been even stronger) — if the move was the best or close to it, say so. Only if there is room, add a few words about what to watch for next. Do NOT give the take-a-picture directions here. Vary your opening words every time — never fall back on the same stock phrase like Good move or Nice move over and over — a real grandpa reacts differently move to move, sometimes surprised, sometimes thoughtful, sometimes playful, based on what actually happened on the board. No markdown.'+((typeof getLangInstruction==='function')?getLangInstruction():'');
   const r=await cap(prompt,{modelTier:'complex'});
   const text=(r&&r.text)?r.text.trim():('Nice move, '+name+'!');
   addMsg('coach','Coach: ',text);
@@ -1943,7 +1996,7 @@ function boardToPieceList(b){
 }
 function boardToFen(b){let fen='';for(let r=0;r<8;r++){let empty=0;for(let c=0;c<8;c++){let p=b[r][c];if(!p){empty++;}else{ if(empty>0){fen+=empty;empty=0;} let s=p.s; if(p.c[0]==='w') s=s.toUpperCase(); else s=s.toLowerCase(); fen+=s;}} if(empty>0) fen+=empty; if(r<7) fen+='/';} return fen;}
 function loadOpening(fen,name,moves,strat){if(!savedGameState&&JSON.stringify(boardState)!==JSON.stringify(startBoard)){savedGameState={boardState:JSON.parse(JSON.stringify(boardState)),highlightSquares:highlightSquares.slice()};document.getElementById('resumeGameBtn').style.display='block';}highlightSquares=[];boardState=fenToBoard(fen);drawBoard(true);nowShowingBox.style.display='block';nowShowingBox.innerHTML='Now showing: '+name+' — '+moves;document.getElementById('board').scrollIntoView({behavior:'smooth',block:'center'});const t=name+' — '+moves+'. '+strat;addMsg('coach','Coach: ',t);speak(t,'coach');setTimeout(()=>{document.getElementById('openPane').classList.remove('on');document.getElementById('livePane').style.display='block';},200);}
-function loadTacticDemo(i){const t=tactics[i];if(!t)return;highlightSquares=[];boardState=fenToBoard(t.fen);drawBoard();const threats=computeThreats(boardState);animateTacticThreats(threats.pairs);nowShowingBox.style.display='block';nowShowingBox.innerHTML='Now showing: '+t.name+' — green lines show which piece is attacking which, watch it jump to what it is winning';document.getElementById('board').scrollIntoView({behavior:'smooth',block:'center'});addMsg('coach','Coach: ',t.desc);setTimeout(()=>{document.getElementById('tactPane').classList.remove('on');document.getElementById('livePane').style.display='block';},200);}
+function loadTacticDemo(i){const t=tactics[i];if(!t)return;highlightSquares=[];boardState=fenToBoard(t.fen);drawBoard();const threats=computeThreats(boardState);gccLoopTactic(threats.pairs);nowShowingBox.style.display='block';nowShowingBox.innerHTML='Now showing: '+t.name+' — green lines show which piece is attacking which, watch it jump to what it is winning';document.getElementById('board').scrollIntoView({behavior:'smooth',block:'center'});addMsg('coach','Coach: ',t.desc);setTimeout(()=>{document.getElementById('tactPane').classList.remove('on');document.getElementById('livePane').style.display='block';},200);}
 
 /* HOW PIECES MOVE - shows a piece on the board with green dots on its legal squares */
 const PIECE_MOVE_TEXT={
@@ -2272,7 +2325,7 @@ async function analyzeBoardInner(justMoved){
   if(idResult.status==='exact'){ openingNote=' This exact position matches a known opening: "'+idResult.opening.name+'" ('+idResult.opening.moves+'). Say so by name — do not guess a different name.'; }
   else if(idResult.status==='multiple'){ openingNote=' This position could still turn into more than one known opening ('+idResult.names.slice(0,4).join(', ')+'), so tell '+name+' it is still being narrowed down rather than naming just one.'; }
   else { openingNote=' This position does not match any of the 100 named openings in the coach\'s library exactly — treat it as free play rather than guessing a formal opening name.'; }
-  const prompt='You are Grandpa Don, an American grandfather from New York, '+grandpaSpeechPhrase()+', a warm, patient chess coach talking with your grandchild '+name+'. Here is the current position as FEN (it may be a position you set up, not necessarily mid-game): '+fen+'. The same position spelled out: '+boardToPieceList(boardState)+' Trust the spelled-out list if you are ever unsure — only talk about pieces that are actually on these squares.'+openingNote+' '+playerSideNote(name)+APP_ROUTINE_NOTE+' Look at it like a real coach would: whose position looks better and why, any threats or tactics worth noticing for either side, and what to THINK about before choosing a move (an idea, a principle, or a danger to watch) — but NEVER name the move to play, that is '+name+'\'s job. Talk like Grandpa actually talking — warm, plain, 4-6 sentences, no markdown, no long move-list dumps. Vary your opening words and phrasing each time rather than repeating the same stock lines — sound like a real person reacting freshly to what is actually on the board right now. '+(justMoved?(name+' JUST MADE A MOVE on the app board: the '+justMoved.piece+' from '+justMoved.from+' to '+justMoved.to+(justMoved.captured?(', capturing a '+justMoved.captured):'')+'. The position above is AFTER that move, so it is now the OPPONENT\'s turn. Start by reacting to that move in a sentence (was it good? if something clearly better existed, name it gently). Then evaluate the position as it stands now: who is better and why, and what the opponent is threatening or will probably try next. Instead of suggesting a move for '+name+' (it is not '+name+'\'s turn), point out the opponent\'s most likely reply or the danger to watch. ALWAYS finish by telling '+name+' clearly what to do next, in your own warm words, ONE time only and briefly: wait for your opponent to answer on the real board, then copy their move onto the Magic Board with MAKE A MOVE (or take a new picture).'):(turnNote(name)+(whoseTurn==='opponent'?(' Start with how '+name+'\'s position looks now, then what the opponent is threatening or will probably try. ALWAYS finish by telling '+name+' clearly, ONE time only and briefly: wait for your opponent to move, then take a new picture.'):(' Do NOT tell '+name+' which move to play — '+name+' must think and choose. ALWAYS finish by telling '+name+' clearly what to do next, in your own warm words, ONE time only: make your move on your real board first, then make the same move here on the Magic Board with MAKE A MOVE, and then I will tell you what I think of it.'))))+getLangInstruction()+' FINALLY, after everything you say, add ONE last separate line (it will be hidden and turned into arrows drawn on the board) in exactly this form: ARROWS: from-to-color, from-to-color — up to 3 arrows, in the same order you talk about them, using real squares from the position. Use green ONLY for the move '+name+' just made (never for a move you are suggesting before '+name+' has moved), red for a threat or attack to watch out for, blue for an idea or plan. Example: ARROWS: g1-f3-green, d8-h4-red. Never mention the word ARROWS or these codes in your spoken words. IMPORTANT: these arrows are drawn on the board WHILE you talk, one after another in that order — so in your spoken words, point to each one by its color as you explain it, like a grandpa pointing at the board (for example: See the red arrow? Their queen is eyeing your pawn on h4. Now look at the green arrow — that is the knight you just moved to f3 to stop it). Talk about what the pieces are DOING to each other — who attacks what, what is protected, what is in danger — never just list where the pieces stand.';
+  const prompt='You are Grandpa Don, an American grandfather from New York, '+grandpaSpeechPhrase()+', a warm, patient chess coach talking with your grandchild '+name+'. Here is the current position as FEN (it may be a position you set up, not necessarily mid-game): '+fen+'. The same position spelled out: '+boardToPieceList(boardState)+' Trust the spelled-out list if you are ever unsure — only talk about pieces that are actually on these squares.'+openingNote+' '+playerSideNote(name)+APP_ROUTINE_NOTE+' Look at it like a real coach would: whose position looks better and why, any threats or tactics worth noticing for either side, and what to THINK about before choosing a move (an idea, a principle, or a danger to watch) — but NEVER name the move to play, that is '+name+'\'s job. Talk like Grandpa actually talking — warm, plain, 3-4 short sentences, no markdown, no long move-list dumps. Vary your opening words and phrasing each time rather than repeating the same stock lines — sound like a real person reacting freshly to what is actually on the board right now. '+(justMoved?(name+' JUST MADE A MOVE on the app board: the '+justMoved.piece+' from '+justMoved.from+' to '+justMoved.to+(justMoved.captured?(', capturing a '+justMoved.captured):'')+'. The position above is AFTER that move, so it is now the OPPONENT\'s turn. Start by reacting to that move in a sentence (was it good? if something clearly better existed, name it gently). Then evaluate the position as it stands now: who is better and why, and what the opponent is threatening or will probably try next. Instead of suggesting a move for '+name+' (it is not '+name+'\'s turn), point out the opponent\'s most likely reply or the danger to watch. ALWAYS finish by telling '+name+' clearly what to do next, in your own warm words, ONE time only and briefly: wait for your opponent to answer on the real board, then copy their move onto the Magic Board with MAKE A MOVE (or take a new picture).'):(turnNote(name)+(whoseTurn==='opponent'?(' Start with how '+name+'\'s position looks now, then what the opponent is threatening or will probably try. ALWAYS finish by telling '+name+' clearly, ONE time only and briefly: wait for your opponent to move, then take a new picture.'):(' Do NOT tell '+name+' which move to play — '+name+' must think and choose. ALWAYS finish by telling '+name+' clearly what to do next, in your own warm words, ONE time only: make your move on your real board first, then make the same move here on the Magic Board with MAKE A MOVE, and then I will tell you what I think of it.'))))+getLangInstruction()+' FINALLY, after everything you say, add ONE last separate line (it will be hidden and turned into arrows drawn on the board) in exactly this form: ARROWS: from-to-color, from-to-color — up to 3 arrows, in the same order you talk about them, using real squares from the position. Use green ONLY for the move '+name+' just made (never for a move you are suggesting before '+name+' has moved), red for a threat or attack to watch out for, blue for an idea or plan. Example: ARROWS: g1-f3-green, d8-h4-red. Never mention the word ARROWS or these codes in your spoken words. IMPORTANT: these arrows are drawn on the board WHILE you talk, one after another in that order — so in your spoken words, point to each one by its color as you explain it, like a grandpa pointing at the board (for example: See the red arrow? Their queen is eyeing your pawn on h4. Now look at the green arrow — that is the knight you just moved to f3 to stop it). Talk about what the pieces are DOING to each other — who attacks what, what is protected, what is in danger — never just list where the pieces stand.';
   const raw=await cap(prompt,{modelTier:'complex',onText:(u)=>{streamedText=splitArrows(u.text).text;txtNode.textContent=streamedText;gccBubble(streamedText);liveBox.scrollTop=liveBox.scrollHeight;}});
   const parsed=splitArrows(raw&&raw.text);
   const text=parsed.text;
@@ -2763,6 +2816,14 @@ async function autoPopulateFromPhotoInner(source,photoKind){
   {label:'⚫ Black pieces were closest',value:'black',bg:'#111',fg:'#fff'},
   {label:'Not sure',value:'unsure',bg:'#555',fg:'#fff'}
  ]);
+ /* build 98: the side nearest the camera is the side the player sits on — remember it, so the
+    board shows THEIR pieces at the bottom (a Black player sees Black at the bottom). */
+ if((nearSide==='white'||nearSide==='black') && playingColor!==nearSide){
+  playingColor=nearSide;
+  try{localStorage.setItem(PLAYING_COLOR_KEY,nearSide);}catch(e){}
+  try{document.getElementById('btnPlayWhite').classList.toggle('picked',nearSide==='white');document.getElementById('btnPlayBlack').classList.toggle('picked',nearSide==='black');}catch(e){}
+  try{drawBoard();}catch(e){}
+ }
  const wantSide=await myChoice('For the most accurate reading, take ONE more picture: crouch down so the phone is low and level with the board, standing at the SAME end of the board as before, so every piece\'s shape shows clearly.',[
   {label:'📸 Take the side picture now',value:'yes',bg:'#FACC15',fg:'#000',onPick:openSidePhotoCamera},
   {label:'Skip — just use the first picture',value:'no',bg:'#555',fg:'#fff'}
@@ -3493,12 +3554,12 @@ function gccBubbleNote(n){
    what a subscriber uses always costs less than what they pay. When it runs out, Grandpa "naps"
    until the 1st of next month. Change the two numbers below to raise or lower the allowance.
    Developer view (?dev=1) is never limited, so Don can test freely. */
-var GCC_MONTHLY_VOICE_CHARS=25000;   // ~25 minutes of Grandpa talking (about $4.50 of ElevenLabs credits)
+var GCC_MONTHLY_VOICE_CHARS=50000;   /* build 100: counted in 'fast voice' letters — the rich voice counts double */ //   // ~25 minutes of Grandpa talking (about $4.50 of ElevenLabs credits)
 var GCC_MONTHLY_THINKS=150;          // ~150 answers, analyses and photo readings (about $2 of AI)
 var GCC_USAGE_KEY='gcc_usage_v1';
 function gccMonth(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1);}
 function gccUsage(){try{var u=JSON.parse(localStorage.getItem(GCC_USAGE_KEY)||'null');if(u&&u.m===gccMonth())return u;}catch(e){}return {m:gccMonth(),voice:0,think:0};}
-var GCC_TOPUP_PRICE='$5', GCC_TOPUP_VOICE_CHARS=12000, GCC_TOPUP_THINKS=50;   // one top-up: about 12 more minutes of voice + 50 more answers (about $3 of cost)
+var GCC_TOPUP_PRICE='$5', GCC_TOPUP_VOICE_CHARS=24000, GCC_TOPUP_THINKS=50;   // one top-up: about 12 more minutes of voice + 50 more answers (about $3 of cost)
 var GCC_TOPUP_URL='index.html#more-time';   // where the "add more time" button goes (connect it to payments later)
 function gccAllow(kind,amt){ if(typeof gccDev!=='undefined'&&gccDev) return true; var u=gccUsage(); return kind==='voice'?(u.voice+amt<=GCC_MONTHLY_VOICE_CHARS+(u.bonusVoice||0)):(u.think+amt<=GCC_MONTHLY_THINKS+(u.bonusThink||0)); }
 /* Call this after a top-up payment succeeds (payments not connected yet). */
@@ -3566,5 +3627,67 @@ function gccTrace(msg){
   return r;
  };
 })();
+</script>
+<script>
+/* build 96: every player starts with a clean board — never the pieces from someone else's game. */
+function gccFreshBoard(){
+ try{ document.getElementById('resetBtn').onclick(); }catch(e){}
+ try{ clearAnalysisArrows(); }catch(e){}
+ try{ uncertainSquares=[]; }catch(e){}
+ try{ whoseTurn=''; }catch(e){}
+ try{ playingColor=null; localStorage.removeItem(PLAYING_COLOR_KEY); }catch(e){}
+ try{ savePhotos([]); renderPhotoGallery(); }catch(e){}
+ try{ closeAllPhotos(true); }catch(e){}
+ try{ drawBoard(); }catch(e){}
+ try{ var b=document.getElementById('gpBubble'); if(b){ gccThinkStop(); b.style.display='none'; } }catch(e){}
+}
+</script>
+<script>
+/* build 97: players never see technical error text. Developer mode (?dev=1) still shows the details. */
+(function(){
+ if(typeof myAlert!=='function' || myAlert.__gccSafe) return;
+ var orig=myAlert;
+ var TECH=/credit balance|billing|console\.anthropic|anthropic api|invalid_request|request_id|\{"type"|HTTP \d|relay|netlify|api key|rate.?limit|status \d{3}/i;
+ var safe=function(msg){
+  try{
+   var dev=document.body && document.body.classList.contains('gccDev');
+   if(!dev && TECH.test(String(msg||''))){
+    var nm=''; try{ var p=gccCurrentPlayer(); nm=p&&p.name?(', '+p.name):''; }catch(e){}
+    msg='Grandpa needs a short rest'+nm+' — he will be right back. Please try again in a little while.';
+    try{ gccBubble(msg); }catch(e){}
+   }
+  }catch(e){}
+  return orig.apply(this,[msg].concat([].slice.call(arguments,1)));
+ };
+ safe.__gccSafe=true;
+ myAlert=safe;
+})();
+</script>
+<script>
+/* build 99: a tactic keeps playing its move, over and over, the whole time Grandpa explains it —
+   not just once before he starts talking. Stops when he finishes, or when the board changes. */
+var gccTacticLoopId=0;
+function gccLoopTactic(pairs){
+ var my=++gccTacticLoopId, start=Date.now(), spoke=false, fen0='';
+ try{ fen0=boardToFen(boardState); }catch(e){}
+ var n=1; try{ var by={}; (pairs||[]).forEach(function(p){var k=p.from.r+','+p.from.c;by[k]=(by[k]||0)+1;}); n=Math.max.apply(null,Object.keys(by).map(function(k){return by[k];}).concat([1])); }catch(e){}
+ var every=350+n*1500+1400+700;
+ function tick(){
+  if(my!==gccTacticLoopId) return;
+  try{ if(boardToFen(boardState)!==fen0) return; }catch(e){}
+  var sp=false; try{ sp=isGrandpaSpeaking(); }catch(e){}
+  if(sp) spoke=true;
+  if(spoke && !sp) return;
+  if(Date.now()-start>60000) return;
+  try{ animateTacticThreats(pairs); }catch(e){}
+  setTimeout(tick, every);
+ }
+ tick();
+}
+</script>
+<script>
+/* build 100: choose Grandpa's voice model. Add ?voice=rich or ?voice=fast to the address once; it is remembered. */
+function gccVoiceModel(){ try{ var v=localStorage.getItem('gcc_voice_model'); return (v==='rich'||v==='fast')?v:'fast'; }catch(e){ return 'fast'; } }
+(function(){ try{ var m=location.search.match(/[?&]voice=(rich|fast)/); if(m){ localStorage.setItem('gcc_voice_model',m[1]); } }catch(e){} })();
 </script>
 </body></html>
