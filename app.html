@@ -603,45 +603,74 @@ function gccPersonalSpeak(t,w){
 /* ---- Meeting Grandpa / Who's playing? ---- */
 var GCC_AGES=['Under 8','8 to 12','13 to 17','Adult','Senior (65 and up)'];
 var GCC_LEVELS=['Brand new — never played','I know how the pieces move','I play sometimes','I play a lot'];
+/* build 96: the player picks their LANGUAGE first, so Grandpa's very first hello is already in it. */
+var GCC_LANG_BTNS=[['en','English'],['es','Español'],['fr','Français'],['de','Deutsch'],['zh','中文'],['pt','Português'],['vi','Tiếng Việt']];
+var GCC_T={
+ en:{hello:'Hello! I’m Grandpa.',name:'What’s your name?',opt:'(optional)',ph:'First name or nickname',next:'Next',skip:'Skip',privacy:'Your name and age are optional. Your answers and Grandpa’s notes stay on this device only.',nice:'Nice to meet you',age:'How old are you?',chess:'And chess',played:'How much have you played?',who:'Who’s playing today?',tap:'Tap your name.',someone:'Someone new',ages:['Under 8','8 to 12','13 to 17','Adult','Senior (65 and up)'],levels:['Brand new — never played','I know how the pieces move','I play sometimes','I play a lot']},
+ es:{hello:'¡Hola! Soy el Abuelo.',name:'¿Cómo te llamas?',opt:'(opcional)',ph:'Nombre o apodo',next:'Siguiente',skip:'Saltar',privacy:'Tu nombre y edad son opcionales. Tus respuestas y las notas del Abuelo se quedan solo en este aparato.',nice:'Mucho gusto',age:'¿Cuántos años tienes?',chess:'Y el ajedrez',played:'¿Cuánto has jugado?',who:'¿Quién juega hoy?',tap:'Toca tu nombre.',someone:'Alguien nuevo',ages:['Menos de 8','8 a 12','13 a 17','Adulto','Mayor (65 o más)'],levels:['Nuevo — nunca he jugado','Sé cómo se mueven las piezas','Juego a veces','Juego mucho']},
+ fr:{hello:'Bonjour ! Je suis Grand-père.',name:'Comment t’appelles-tu ?',opt:'(facultatif)',ph:'Prénom ou surnom',next:'Suivant',skip:'Passer',privacy:'Ton nom et ton âge sont facultatifs. Tes réponses et les notes de Grand-père restent sur cet appareil.',nice:'Enchanté',age:'Quel âge as-tu ?',chess:'Et les échecs',played:'Tu as beaucoup joué ?',who:'Qui joue aujourd’hui ?',tap:'Touche ton nom.',someone:'Quelqu’un de nouveau',ages:['Moins de 8 ans','8 à 12 ans','13 à 17 ans','Adulte','Senior (65 ans et plus)'],levels:['Débutant — jamais joué','Je sais déplacer les pièces','Je joue parfois','Je joue beaucoup']},
+ de:{hello:'Hallo! Ich bin Opa.',name:'Wie heißt du?',opt:'(freiwillig)',ph:'Vorname oder Spitzname',next:'Weiter',skip:'Überspringen',privacy:'Name und Alter sind freiwillig. Deine Antworten und Opas Notizen bleiben nur auf diesem Gerät.',nice:'Schön, dich kennenzulernen',age:'Wie alt bist du?',chess:'Und Schach',played:'Wie viel hast du schon gespielt?',who:'Wer spielt heute?',tap:'Tippe auf deinen Namen.',someone:'Jemand Neues',ages:['Unter 8','8 bis 12','13 bis 17','Erwachsen','Senior (ab 65)'],levels:['Ganz neu — nie gespielt','Ich weiß, wie die Figuren ziehen','Ich spiele manchmal','Ich spiele viel']},
+ zh:{hello:'你好！我是爷爷。',name:'你叫什么名字？',opt:'（可选）',ph:'名字或昵称',next:'下一步',skip:'跳过',privacy:'名字和年龄可以不填。你的回答和爷爷的笔记只保存在这台设备上。',nice:'很高兴认识你',age:'你几岁了？',chess:'下棋呢',played:'你下过多少国际象棋？',who:'今天谁来下棋？',tap:'点你的名字。',someone:'新朋友',ages:['8岁以下','8到12岁','13到17岁','成年人','长者（65岁以上）'],levels:['完全新手——从没下过','我知道棋子怎么走','我有时下','我经常下']},
+ pt:{hello:'Olá! Eu sou o Vovô.',name:'Qual é o seu nome?',opt:'(opcional)',ph:'Nome ou apelido',next:'Próximo',skip:'Pular',privacy:'Nome e idade são opcionais. Suas respostas e as anotações do Vovô ficam só neste aparelho.',nice:'Prazer em conhecer você',age:'Quantos anos você tem?',chess:'E o xadrez',played:'Quanto você já jogou?',who:'Quem vai jogar hoje?',tap:'Toque no seu nome.',someone:'Alguém novo',ages:['Menos de 8','8 a 12','13 a 17','Adulto','Idoso (65 ou mais)'],levels:['Novato — nunca joguei','Sei como as peças se movem','Jogo às vezes','Jogo muito']},
+ vi:{hello:'Xin chào! Ông đây.',name:'Cháu tên là gì?',opt:'(không bắt buộc)',ph:'Tên hoặc biệt danh',next:'Tiếp',skip:'Bỏ qua',privacy:'Tên và tuổi không bắt buộc. Câu trả lời và ghi chú của Ông chỉ lưu trên máy này.',nice:'Rất vui được gặp cháu',age:'Cháu bao nhiêu tuổi?',chess:'Còn cờ vua',played:'Cháu đã chơi nhiều chưa?',who:'Hôm nay ai chơi?',tap:'Chạm vào tên của cháu.',someone:'Người mới',ages:['Dưới 8','8 đến 12','13 đến 17','Người lớn','Cao tuổi (65 trở lên)'],levels:['Mới hoàn toàn — chưa chơi','Biết cách đi quân','Thỉnh thoảng chơi','Chơi nhiều']}
+};
+function gccTx(k){var c=(typeof getLanguageCode==='function')?getLanguageCode():'en';var t=GCC_T[c]||GCC_T.en;return t[k]!==undefined?t[k]:GCC_T.en[k];}
+var gccNewLang='';
+function gccMeetLang(){
+ var h='<h2>🌐</h2><p>Language · Idioma · Langue · Sprache · 语言 · Ngôn ngữ</p><div class="opts">';
+ GCC_LANG_BTNS.forEach(function(l){h+='<button onclick="gccPickLang(\''+l[0]+'\')">'+l[1]+'</button>';});
+ gccShow(h+'</div>');
+}
+function gccPickLang(code){
+ gccNewLang=code;
+ try{ var lp=document.getElementById('langPicker'); if(lp) lp.value=code; }catch(e){}
+ try{ languageInMemory=code; localStorage.setItem(LANGUAGE_KEY,code); chatTurns=[]; }catch(e){}
+ gccMeetName();
+}
+function gccApplyPlayerLang(p){
+ if(!p||!p.lang) return;
+ try{ var lp=document.getElementById('langPicker'); if(lp) lp.value=p.lang; languageInMemory=p.lang; localStorage.setItem(LANGUAGE_KEY,p.lang); }catch(e){}
+}
 function gccShow(html){var m=document.getElementById('gccMeet');document.getElementById('gccMeetCard').innerHTML=html;m.hidden=false;}
 function gccHide(){document.getElementById('gccMeet').hidden=true;}
 function gccWho(){
  var d=gccLoad();
- if(!d.players.length){ gccMeetName(); return; }
- var h='<h2>Who’s playing today?</h2><p>Tap your name.</p><div class="opts">';
+ if(!d.players.length){ gccMeetLang(); return; }
+ var h='<h2>'+gccTx('who')+'</h2><p>'+gccTx('tap')+'</p><div class="opts">';
  d.players.forEach(function(p,ix){h+='<button onclick="gccChoose(\''+p.id+'\')">'+gccEsc(p.name||('Player '+(ix+1)))+'</button>';});
- h+='<button class="alt" onclick="gccMeetName()">Someone new</button></div>';
+ h+='<button class="alt" onclick="gccMeetLang()">'+gccTx('someone')+'</button></div>';
  gccShow(h);
 }
 function gccMeetName(){
- gccShow('<h2>Hello! I’m Grandpa.</h2><p>What’s your name? <span class="opt">(optional)</span></p><input id="gccNameIn" maxlength="30" placeholder="First name or nickname" autocomplete="off"><div class="opts"><button onclick="gccMeetAge()">Next</button><button class="alt" onclick="gccMeetAge(true)">Skip</button></div><small>Your name and age are optional. Your answers and Grandpa’s notes stay on this device only.</small>');
+ gccShow('<h2>'+gccTx('hello')+'</h2><p>'+gccTx('name')+' <span class="opt">'+gccTx('opt')+'</span></p><input id="gccNameIn" maxlength="30" placeholder="'+gccTx('ph')+'" autocomplete="off"><div class="opts"><button onclick="gccMeetAge()">'+gccTx('next')+'</button><button class="alt" onclick="gccMeetAge(true)">'+gccTx('skip')+'</button></div><small>'+gccTx('privacy')+'</small>');
  setTimeout(function(){var i=document.getElementById('gccNameIn');if(i){i.focus();i.addEventListener('keydown',function(e){if(e.key==='Enter')gccMeetAge();});}},50);
 }
 var gccNewName='';
 function gccMeetAge(skip){
  var i=document.getElementById('gccNameIn');var n=skip?'':(i&&i.value||'').trim();
  gccNewName=n.slice(0,30);
- var h='<h2>'+(gccNewName?('Nice to meet you, '+gccEsc(gccNewName)+'!'):'Nice to meet you!')+'</h2><p>How old are you? <span class="opt">(optional)</span></p><div class="opts">';
- GCC_AGES.forEach(function(a,k){h+='<button onclick="gccMeetLevel('+k+')">'+a+'</button>';});
- gccShow(h+'<button class="alt" onclick="gccMeetLevel(-1)">Skip</button></div>');
+ var h='<h2>'+gccTx('nice')+(gccNewName?(', '+gccEsc(gccNewName)):'')+'!</h2><p>'+gccTx('age')+' <span class="opt">'+gccTx('opt')+'</span></p><div class="opts">';
+ GCC_AGES.forEach(function(a,k){h+='<button onclick="gccMeetLevel('+k+')">'+gccTx('ages')[k]+'</button>';});
+ gccShow(h+'<button class="alt" onclick="gccMeetLevel(-1)">'+gccTx('skip')+'</button></div>');
 }
 var gccNewAge='';
 function gccMeetLevel(k){
  gccNewAge=k>=0?GCC_AGES[k]:'';
- var h='<h2>And chess'+(gccNewName?(', '+gccEsc(gccNewName)):'')+'?</h2><p>How much have you played?</p><div class="opts">';
- GCC_LEVELS.forEach(function(a,j){h+='<button onclick="gccMeetDone('+j+')">'+a+'</button>';});
+ var h='<h2>'+gccTx('chess')+(gccNewName?(', '+gccEsc(gccNewName)):'')+'?</h2><p>'+gccTx('played')+'</p><div class="opts">';
+ GCC_LEVELS.forEach(function(a,j){h+='<button onclick="gccMeetDone('+j+')">'+gccTx('levels')[j]+'</button>';});
  gccShow(h+'</div>');
 }
 function gccMeetDone(j){
  var d=gccLoad();
- var p={id:'p'+Date.now().toString(36),name:gccNewName,age:gccNewAge,level:j>=0?GCC_LEVELS[j]:'',notes:[],games:0,created:new Date().toISOString().slice(0,10)};
+ var p={id:'p'+Date.now().toString(36),name:gccNewName,age:gccNewAge,level:j>=0?GCC_LEVELS[j]:'',notes:[],games:0,lang:gccNewLang||((typeof getLanguageCode==='function')?getLanguageCode():'en'),created:new Date().toISOString().slice(0,10)};
  d.players.push(p);d.current=p.id;gccSave(d);
  gccStart(true);
 }
-function gccChoose(id){var d=gccLoad();d.current=id;gccSave(d);gccStart(false);}
+function gccChoose(id){var d=gccLoad();d.current=id;gccSave(d);gccApplyPlayerLang(gccCurrentPlayer());gccStart(false);}
 function gccStart(isNew){
  gccHide();
  var p=gccCurrentPlayer(); if(!p) return;
+ try{ gccFreshBoard(); }catch(e){}
  try{ playerNameInput.value=p.name||''; }catch(e){}
  try{ var ss=document.querySelector('#speakerSel option[value="student"]'); if(ss) ss.textContent=(p.name||'Me')+' — ask'; }catch(e){}
  try{ chatTurns=[]; }catch(e){}
@@ -660,10 +689,14 @@ async function gccGreet(isNew){
   var cap=await getSampleCap(); if(!cap){div.remove();return;}
   var when=new Date().getHours();var tod=when<12?'morning':(when<17?'afternoon':'evening');
   var prompt='You are Grandpa Don, an American grandfather from New York, '+grandpaSpeechPhrase()+', a warm, patient chess coach. It is '+tod+'. '+(isNew?(p.name+' has just met you for the very first time and told you their name, age group and chess experience. This is your first meeting — do NOT say welcome back. Welcome them warmly by name (say it is lovely to meet them), tell them in a sentence what you two will do together at their real chess board, and invite them to start — the green Play game button takes a picture of their real board.'):(p.name+' has come back to play with you again. Welcome them back warmly by name. If you remember something from earlier that is worth mentioning, mention one thing briefly; then invite them to start — the green Play game button takes a picture of their real board.'))+' Two or three short sentences, the way Grandpa really talks.'+gccPlayerContext(false)+'\n\nReply with ONLY what Grandpa says.';
-  var r=await cap(prompt,{modelTier:'complex',gccNoMemory:true});
+  try{ gccBubble('',true); }catch(e){}
+  var r=null;
+  try{ r=await cap(prompt,{modelTier:'complex',gccNoMemory:true}); }catch(e1){ r=null; }
+  if(!r||!r.text||!String(r.text).trim()){ try{ r=await cap(prompt,{modelTier:'complex',gccNoMemory:true}); }catch(e2){ r=null; } }
   var text=(r&&r.text||'').trim();
-  if(!text){div.remove();return;}
+  if(!text){ try{ gccBubble(gccTx('hello')+' 👋'); }catch(e){} div.remove(); return; }
   tn.textContent=text;gccMarkAi(text);
+  try{ gccBubble(text); }catch(e){}
   var sp=document.createElement('button');sp.className='speakerBtn';sp.textContent='🔊';sp.onclick=function(){isStopped=false;speak(text,'coach');};div.appendChild(sp);
   if(!isStopped) speak(text,'coach');
  }catch(e){div.remove();}
@@ -838,7 +871,22 @@ const LANGUAGE_KEY='grandpa_language_v1';
 let languageInMemory=null;
 function getLanguageCode(){const lp=document.getElementById('langPicker');if(lp&&lp.value&&LANGUAGES.some(l=>l.code===lp.value)) return lp.value;if(languageInMemory) return languageInMemory;try{return localStorage.getItem(LANGUAGE_KEY)||'en';}catch(e){return 'en';}}
 function getLanguageName(){const code=getLanguageCode();const found=LANGUAGES.find(l=>l.code===code);return found?found.name:'English';}
-function setLanguage(code){languageInMemory=code;try{localStorage.setItem(LANGUAGE_KEY,code);}catch(e){} chatTurns=[]; addSystem('🌐 Grandpa will now talk with you in '+getLanguageName()+'.');}
+function setLanguage(code){languageInMemory=code;try{localStorage.setItem(LANGUAGE_KEY,code);}catch(e){} chatTurns=[]; addSystem('🌐 Grandpa will now talk with you in '+getLanguageName()+'.');
+ try{ gccUpdateCurrent(function(x){x.lang=code;}); }catch(e){}
+ /* build 96: say one warm sentence in the new language, so the player hears the change right away. */
+ (async function(){
+  try{
+   var meet=document.getElementById('gccMeet'); if(meet && !meet.hidden) return;
+   var cap=await getSampleCap(); if(!cap) return;
+   var nm=getName();
+   try{ gccBubble('',true); }catch(e){}
+   var r=await cap('You are Grandpa Don, a warm grandfather chess coach, '+grandpaSpeechPhrase()+'. '+nm+' just chose to talk with you in '+getLanguageName()+'. Say ONE short, warm sentence in '+getLanguageName()+' telling '+nm+' that from now on you will speak '+getLanguageName()+' together. Reply with ONLY that sentence.',{modelTier:'complex',gccNoMemory:true});
+   var t=(r&&r.text||'').trim(); if(!t) return;
+   try{ gccBubble(t); }catch(e){}
+   isStopped=false; speak(t,'coach');
+  }catch(e){}
+ })();
+}
 function getLangInstruction(){const code=getLanguageCode();if(code==='en')return '';const lang=getLanguageName();return ' IMPORTANT LANGUAGE RULE: You must write your ENTIRE reply in '+lang+'. Do not use any English words at all, not even one. Every single sentence must be in '+lang+', because that is the only language '+getName()+' understands. If you are unsure, still answer fully in '+lang+' — never fall back to English. (Reminder: reply 100% in '+lang+', not English.)';}
 /* build 80: the prompts used to say "speaking plain American English", which fought the language rule — so French/German came back in English. */
 function grandpaSpeechPhrase(){const code=getLanguageCode();return code==='en'?'speaking plain American English':('speaking plain, simple '+getLanguageName()+' (never English)');}
@@ -3565,6 +3613,40 @@ function gccTrace(msg){
   }catch(e){}
   return r;
  };
+})();
+</script>
+<script>
+/* build 96: every player starts with a clean board — never the pieces from someone else's game. */
+function gccFreshBoard(){
+ try{ document.getElementById('resetBtn').onclick(); }catch(e){}
+ try{ clearAnalysisArrows(); }catch(e){}
+ try{ uncertainSquares=[]; }catch(e){}
+ try{ whoseTurn=''; }catch(e){}
+ try{ playingColor=null; localStorage.removeItem(PLAYING_COLOR_KEY); }catch(e){}
+ try{ closeAllPhotos(true); }catch(e){}
+ try{ drawBoard(); }catch(e){}
+ try{ var b=document.getElementById('gpBubble'); if(b){ gccThinkStop(); b.style.display='none'; } }catch(e){}
+}
+</script>
+<script>
+/* build 97: players never see technical error text. Developer mode (?dev=1) still shows the details. */
+(function(){
+ if(typeof myAlert!=='function' || myAlert.__gccSafe) return;
+ var orig=myAlert;
+ var TECH=/credit balance|billing|console\.anthropic|anthropic api|invalid_request|request_id|\{"type"|HTTP \d|relay|netlify|api key|rate.?limit|status \d{3}/i;
+ var safe=function(msg){
+  try{
+   var dev=document.body && document.body.classList.contains('gccDev');
+   if(!dev && TECH.test(String(msg||''))){
+    var nm=''; try{ var p=gccCurrentPlayer(); nm=p&&p.name?(', '+p.name):''; }catch(e){}
+    msg='Grandpa needs a short rest'+nm+' — he will be right back. Please try again in a little while.';
+    try{ gccBubble(msg); }catch(e){}
+   }
+  }catch(e){}
+  return orig.apply(this,[msg].concat([].slice.call(arguments,1)));
+ };
+ safe.__gccSafe=true;
+ myAlert=safe;
 })();
 </script>
 </body></html>
