@@ -36,7 +36,11 @@ async function findVoiceId(apiKey, voiceName) {
   return { id: match.voice_id };
 }
 
-function speak(apiKey, voiceId, text) {
+// Oct 2026: two voice models to choose from.
+//  'fast' = eleven_flash_v2_5 — about half the credits, quicker, 32 languages (the default now)
+//  'rich' = eleven_multilingual_v2 — the original, fullest sound
+const VOICE_MODELS = { fast: 'eleven_flash_v2_5', rich: 'eleven_multilingual_v2' };
+function speak(apiKey, voiceId, text, modelId) {
   return fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceId, {
     method: 'POST',
     headers: {
@@ -44,7 +48,7 @@ function speak(apiKey, voiceId, text) {
       'Content-Type': 'application/json',
       'Accept': 'audio/mpeg'
     },
-    body: JSON.stringify({ text: text, model_id: 'eleven_multilingual_v2' })
+    body: JSON.stringify({ text: text, model_id: modelId || VOICE_MODELS.fast })
   });
 }
 
@@ -80,6 +84,7 @@ exports.handler = async function (event) {
 
   const text = payload.text;
   const voiceName = payload.voiceName;
+  const modelId = VOICE_MODELS[payload.voiceModel] || VOICE_MODELS.fast;
   if (!text || !voiceName) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing text or voiceName.' }) };
   }
@@ -90,7 +95,7 @@ exports.handler = async function (event) {
       return { statusCode: found.status, headers, body: JSON.stringify({ error: found.error }) };
     }
 
-    let speechResp = await speak(apiKey, found.id, text);
+    let speechResp = await speak(apiKey, found.id, text, modelId);
     // If a remembered voice ID has gone stale (e.g. the voice was re-created), look it up fresh once.
     if (speechResp.status === 404 || speechResp.status === 400) {
       delete voiceIdCache[String(voiceName).toLowerCase().trim()];
@@ -98,7 +103,7 @@ exports.handler = async function (event) {
       if (found.error) {
         return { statusCode: found.status, headers, body: JSON.stringify({ error: found.error }) };
       }
-      speechResp = await speak(apiKey, found.id, text);
+      speechResp = await speak(apiKey, found.id, text, modelId);
     }
     if (!speechResp.ok) {
       const bodyText = await speechResp.text().catch(() => '');
