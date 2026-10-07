@@ -1449,7 +1449,10 @@ async function commentOnMove(fromAlg,toAlg,pieceLetter,isWhite,capturedLetter){
 /* COLOR-AWARE OPENING ID - only ever runs from commentOnMove, i.e. AFTER a move has landed on the board, never before */
 function getSuggestedDefense(openingId){
  const parent=openings.find(p=>p.id===openingId);
- const child=parent&&openings.find(x=>BLACK_DEFENSE_IDS.has(x.id)&&x.moves.indexOf(parent.moves+' ')===0);
+ /* build 108: suggest a sound, main-line defense — never a trap or a risky gambit — and the most direct one */
+ const kids=parent?openings.filter(x=>BLACK_DEFENSE_IDS.has(x.id)&&x.moves.indexOf(parent.moves+' ')===0&&!/gambit|blackburne|latvian|elephant|scholar|fried liver/i.test(x.name)):[];
+ kids.sort((a,b)=>a.moves.length-b.moves.length);
+ const child=kids[0];
  if(child) return {name:child.name,moves:child.moves,strat:child.strat};
  const fallback=TYPICAL_BLACK_REPLY[openingId];
  if(fallback) return {name:fallback.name,moves:null,strat:fallback.text};
@@ -1465,8 +1468,11 @@ function addCoachMsgWithButton(txt,btnLabel,onClick){
  if(!isStopped)speak(txt,'coach');
 }
 function handleOpeningIdentification(fen){
- if(openingAnnouncedThisGame||!playingColor) return;
+ if(!playingColor) return;
  const idResult=identifyOpeningByFen(fen);
+ /* build 108: an opening can be named again when it grows into a more specific one (Italian Game → Giuoco Piano), up to 3 times a game */
+ if(idResult.status==='exact'){ window.gccOpenCount=window.gccOpenCount||0; if(window.gccLastOpening===idResult.opening.id || window.gccOpenCount>=3) return; }
+ else if(openingAnnouncedThisGame) return;
  if(idResult.status==='multiple'){
   if(!openingStillNarrowingSaid){
    openingStillNarrowingSaid=true;
@@ -1475,12 +1481,13 @@ function handleOpeningIdentification(fen){
   return;
  }
  if(idResult.status!=='exact') return;
- openingAnnouncedThisGame=true;
+ const firstOpening=!openingAnnouncedThisGame;
+ openingAnnouncedThisGame=true; window.gccLastOpening=idResult.opening.id; window.gccOpenCount=(window.gccOpenCount||0)+1;
  const o=idResult.opening,name=getName();
  if(playingColor==='white'){
   addMsg('coach','Coach: ','I see it, '+name+' — that\'s the '+o.name+' ('+o.moves+'). '+o.strat);
   const d=getSuggestedDefense(o.id);
-  addMsg('coach','Coach: ','By the way — this is usually met by Black with '+d.name+'. Just something to be aware of, not something to expect. I\'ll keep watching whatever Black actually plays.');
+  if(firstOpening) addMsg('coach','Coach: ','By the way — this is usually met by Black with '+d.name+'. Just something to be aware of, not something to expect. I\'ll keep watching whatever Black actually plays.');
  } else if(playingColor==='black'){
   const d=getSuggestedDefense(o.id);
   addCoachMsgWithButton('White just played the '+o.name+' ('+o.moves+'). '+o.strat+' A good, solid defense for you here, '+name+', is '+d.name+'.','📖 FULL DEFENSE EXPLANATION',()=>{
@@ -1824,7 +1831,7 @@ updatePieceStyleButtons();
 if(playingColor){ document.getElementById('btnPlayWhite').classList.toggle('picked',playingColor==='white'); document.getElementById('btnPlayBlack').classList.toggle('picked',playingColor==='black'); }
 document.querySelectorAll('.pick').forEach(el=>{const c=el.dataset.c;el.querySelector('.circlePick').innerHTML=pieceIconHTML(c.slice(1),c[0]==='w');el.onclick=()=>{document.querySelectorAll('.pick').forEach(x=>x.classList.remove('on'));el.classList.add('on');sel={c:el.dataset.c,s:el.dataset.c.slice(1)};erase=false;threatsVisible=false;if(moveMode){moveMode=false;moveFrom=null;const b=document.getElementById('moveModeBtn');if(b){b.textContent='🎯 MAKE A MOVE';b.style.background='';}}};});
 document.getElementById('eraseBtn').onclick=()=>{highlightSquares=[];sel=null;erase=true;threatsVisible=false;document.querySelectorAll('.pick').forEach(x=>x.classList.remove('on'));if(moveMode){moveMode=false;moveFrom=null;const b=document.getElementById('moveModeBtn');if(b){b.textContent='🎯 MAKE A MOVE';b.style.background='';}}};
-document.getElementById('resetBtn').onclick=()=>{highlightSquares=[];threatsVisible=false;boardState=JSON.parse(JSON.stringify(startBoard));drawBoard();nowShowingBox.style.display='none';openingAnnouncedThisGame=false;openingStillNarrowingSaid=false;savedGameState=null;document.getElementById('resumeGameBtn').style.display='none'; /* PHOTO STAYS - DO NOT CLEAR */ };
+document.getElementById('resetBtn').onclick=()=>{window.gccLastOpening=null;window.gccOpenCount=0;try{gccQuietMoves=0;}catch(e){}highlightSquares=[];threatsVisible=false;boardState=JSON.parse(JSON.stringify(startBoard));drawBoard();nowShowingBox.style.display='none';openingAnnouncedThisGame=false;openingStillNarrowingSaid=false;savedGameState=null;document.getElementById('resumeGameBtn').style.display='none'; /* PHOTO STAYS - DO NOT CLEAR */ };
 /* build 82: Grandpa's fixed built-in lines (like "I see it, Don — that's the Italian Game")
    are written in English inside the app, so they came out in English before his French answer.
    Now any English coach line is translated first when another language is picked. */
@@ -3481,6 +3488,10 @@ function identifyOpeningByFen(fen){
  const ids=OPENING_FEN_MAP[fen];
  if(!ids||!ids.length) return {status:'none'};
  if(ids.length===1){ const o=openings.find(x=>x.id===ids[0]); return {status:'exact',opening:o}; }
+ /* build 108: when several openings pass through this position, but one of them ENDS exactly here
+    (e.g. the Italian Game after 3.Bc4), that is the opening's name right now. */
+ const here=ids.map(id=>openings.find(x=>x.id===id)).filter(o=>o&&o.fen&&o.fen.split(' ')[0]===fen.split(' ')[0]);
+ if(here.length===1) return {status:'exact',opening:here[0]};
  const names=ids.map(id=>{const o=openings.find(x=>x.id===id);return o?o.name:null;}).filter(Boolean);
  return {status:'multiple',names:names,count:names.length};
 }
@@ -3783,7 +3794,7 @@ function gccVoiceModel(){ try{ var v=localStorage.getItem('gcc_voice_model'); re
    comment, or you can ask me a question at any time." After that he only speaks up when something
    important happens: a capture, a check, or a piece left hanging (attacked and not protected).
    If a long stretch goes by quietly, he checks in after 8 moves. Saves most of the voice cost. */
-var GCC_QUIET_MAX=8, gccQuietMoves=0, gccToldQuiet=false;
+var GCC_QUIET_MAX=3, gccQuietMoves=0, gccToldQuiet=false;
 function gccAttacks(col,tr,tc){
  for(var r=0;r<8;r++)for(var c=0;c<8;c++){ var pc=boardState[r][c]; if(!pc||pc.c[0]!==col) continue;
   var ms=pieceLegalMoves(pc.s,r,c,col)||[]; for(var i=0;i<ms.length;i++){ if(ms[i].r===tr&&ms[i].c===tc) return true; } }
@@ -3810,9 +3821,12 @@ function gccHanging(){
   gccQuietMoves++;
   var important=!!capturedLetter || gccIsCheck() || gccHanging() || gccQuietMoves>=GCC_QUIET_MAX;
   if(important){ gccQuietMoves=0; return orig.apply(this,arguments); }
+  /* build 108: even on a quiet move, Grandpa still recognizes a named opening the moment it appears
+     (the exact position only exists for one move, so it must be checked every move). */
+  try{ var wasAnn=openingAnnouncedThisGame; openingStillNarrowingSaid=true; handleOpeningIdentification(boardToFen(boardState)); if(!wasAnn && openingAnnouncedThisGame){ gccToldQuiet=true; return; } }catch(e){}
   if(!gccToldQuiet){
    gccToldQuiet=true;
-   var line='Keep playing. If I see something important, I will make a comment — or you can ask me a question at any time.';
+   var line='Keep playing. I will chime in every few moves, and right away if I see something important — or you can ask me a question at any time.';
    var t=null; try{ t=gccPersonalSpeak(line,'coach'); }catch(e){}
    try{ gccBubble(t||line); }catch(e){}
    if(t){ try{ isStopped=false; speak(t,'coach'); }catch(e){} }
