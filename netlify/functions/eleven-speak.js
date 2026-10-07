@@ -105,6 +105,14 @@ exports.handler = async function (event) {
       }
       speechResp = await speak(apiKey, found.id, text, modelId);
     }
+    // If the fast voice model can't use this cloned voice, fall back to the rich model so Grandpa is never silent.
+    let usedModel = modelId;
+    if (!speechResp.ok && speechResp.status !== 401 && modelId !== VOICE_MODELS.rich) {
+      const why = await speechResp.text().catch(() => '');
+      console.log('fast voice failed, using rich voice instead:', speechResp.status, why.slice(0, 200));
+      speechResp = await speak(apiKey, found.id, text, VOICE_MODELS.rich);
+      usedModel = VOICE_MODELS.rich;
+    }
     if (!speechResp.ok) {
       const bodyText = await speechResp.text().catch(() => '');
       let msg = 'ElevenLabs speech request failed (HTTP ' + speechResp.status + ').';
@@ -119,7 +127,7 @@ exports.handler = async function (event) {
     return {
       statusCode: 200,
       headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
-      body: JSON.stringify({ audio: audioBase64 })
+      body: JSON.stringify({ audio: audioBase64, model: usedModel })
     };
   } catch (e) {
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Server error: ' + e.message }) };
