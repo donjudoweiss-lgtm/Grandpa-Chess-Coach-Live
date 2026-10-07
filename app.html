@@ -120,7 +120,7 @@ h1{color:#2ecc71;font-size:32px}
 .openingItemNote{opacity:.85;border-style:dashed;cursor:default}
 .orphanHead{margin:14px 0 4px;padding:8px;border-radius:10px;text-align:center;font-size:14px;color:#fff;background:#555}
 .closeBtn{width:100%;padding:12px;border-radius:10px;border:3px solid #fff;background:#333;color:#fff;font-weight:bold;margin-bottom:8px;cursor:pointer}
-input[type=file]{display:none}
+input[type=file]{position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0} /* build 101: hidden but still openable on iPhone/iPad */
 </style></head><body>
 <div style="position:fixed;bottom:4px;right:6px;font-size:15px;font-weight:bold;color:#fff;background:rgba(0,0,0,0.75);padding:3px 8px;border-radius:8px;z-index:99999;pointer-events:none">build 2026-10-03-85</div>
 <button id="floatingStopBtn" onclick="toggleFloatingStop()" style="position:fixed;bottom:16px;left:16px;z-index:999;background:#e74c3c;color:#fff;border:4px solid #fff;border-radius:50px;padding:14px 20px;font-size:16px;font-weight:bold;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.5)">⏸️ STOP</button>
@@ -3364,10 +3364,12 @@ function resetChessClock(){
  document.getElementById('clockPresets').style.display='flex';
 }
 function chooseFromLibraryInstead(){
+ /* build 101: open the photo picker FIRST, right on the tap — iPads ignore it if anything comes before. */
+ try{ document.getElementById('libraryFileInput').click(); }catch(e){}
+ const wasPlay=(cameraGuidePurpose==='play');
  closeCameraGuide();
- if(cameraGuidePurpose==='play') armPlayFallback();
+ if(wasPlay) armPlayFallback();
  else cameraGuidePurpose=null;
- document.getElementById('libraryFileInput').click();
 }
 function captureFromCameraGuide(){
  const video=document.getElementById('cameraVideoEl');
