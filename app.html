@@ -2022,8 +2022,10 @@ async function playGame(){
  const name=getName();
  const how=await myChoice('How would you like to start, '+name+'?',[
   {label:'♟️ A new game — from the very beginning',value:'new',bg:'#2F5233',fg:'#fff'},
-  {label:'📸 A game already going — take one picture',value:'photo',bg:'#FACC15',fg:'#000'}
+  {label:'📸 A game already going — take one picture',value:'photo',bg:'#FACC15',fg:'#000'},
+  {label:'✕ Cancel',value:'cancel',bg:'#555',fg:'#fff'}
  ]);
+ if(how==='cancel') return;
  if(how==='photo'){
   addSystem('📸 Take a picture of your real board to start, '+name+' — or back out / tap CANCEL to just play from the board already on the screen.');
   openCameraGuide('play');
@@ -2031,8 +2033,10 @@ async function playGame(){
  }
  const col=await myChoice('Which color are you playing?',[
   {label:'⚪ White — I move first',value:'white',bg:'#f5f5f5',fg:'#000'},
-  {label:'⚫ Black — my opponent moves first',value:'black',bg:'#111',fg:'#fff'}
+  {label:'⚫ Black — my opponent moves first',value:'black',bg:'#111',fg:'#fff'},
+  {label:'✕ Cancel',value:'cancel',bg:'#555',fg:'#fff'}
  ]);
+ if(col==='cancel') return;
  try{ document.getElementById('resetBtn').onclick(); }catch(e){ boardState=JSON.parse(JSON.stringify(startBoard)); }
  try{ clearAnalysisArrows(); }catch(e){}
  try{ uncertainSquares=[]; }catch(e){}
@@ -3568,7 +3572,9 @@ function gccAnalysisTrouble(msg,justMoved){
 <script>
 /* build 88: DEVELOPER MODE. Players never see technical messages or the voice-setup bars.
    Don opens the program with ?dev=1 at the end of the address to see them (and ?dev=0 to hide them again). */
-var gccDev=(function(){try{var q=location.search;if(/[?&]dev=1/.test(q))localStorage.setItem('gcc_dev','1');if(/[?&]dev=0/.test(q))localStorage.removeItem('gcc_dev');return localStorage.getItem('gcc_dev')==='1';}catch(e){return /[?&]dev=1/.test(location.search);}})();
+/* build 107: developer mode now needs Donald's private code (?dev=knight77), so nobody else can use it
+   to skip the free-trial and monthly limits. ?dev=0 turns it off. */
+var gccDev=(function(){try{var q=location.search;if(/[?&]dev=knight77(&|$)/i.test(q))localStorage.setItem('gcc_dev','k77');if(/[?&]dev=0/.test(q))localStorage.removeItem('gcc_dev');return localStorage.getItem('gcc_dev')==='k77';}catch(e){return /[?&]dev=knight77(&|$)/i.test(location.search);}})();
 if(gccDev) document.body.classList.add('gccDev');
 var GCC_TECH=/netlify|elevenlabs|relay|claude|anthropic|http|api\b|api key|credits|github|developer|environment variable|voice name/i;
 (function(){
