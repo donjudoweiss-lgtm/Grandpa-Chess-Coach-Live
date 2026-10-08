@@ -725,6 +725,7 @@ function gccStart(isNew){
  gccHide();
  var p=gccCurrentPlayer(); if(!p) return;
  try{ gccFreshBoard(); }catch(e){}
+ try{ enableMoveMode(); drawBoard(); }catch(e){}
  try{ playerNameInput.value=p.name||''; }catch(e){}
  try{ var ss=document.querySelector('#speakerSel option[value="student"]'); if(ss) ss.textContent=(p.name||'Me')+' — ask'; }catch(e){}
  try{ chatTurns=[]; }catch(e){}
@@ -3897,5 +3898,28 @@ function gccInTrial(){ if(GCC_STRIPE_CONNECTED) return false; var t=gccTrial(); 
  b.onclick=function(){ try{ isStopped=false; analyzeBoard(); }catch(e){} };
  bub.parentNode.insertBefore(b,bub.nextSibling);
 })();
+</script>
+<script>
+/* build 112: if someone just starts moving pieces without tapping Play game, Grandpa asks once which
+   color they are playing, then the game is on — comments, openings and all. */
+(function(){
+ if(typeof commentOnMove!=='function') return;
+ var inner=commentOnMove;
+ commentOnMove=async function(){
+  var args=arguments;
+  if(playingColor!=='white' && playingColor!=='black'){
+   var col=await myChoice('Which color are you playing?',[
+    {label:'⚪ White',value:'white',bg:'#f5f5f5',fg:'#000'},
+    {label:'⚫ Black',value:'black',bg:'#111',fg:'#fff'}
+   ]);
+   playingColor=(col==='black')?'black':'white';
+   try{ localStorage.setItem(PLAYING_COLOR_KEY,playingColor); }catch(e){}
+   try{ drawBoard(); }catch(e){}
+  }
+  return inner.apply(this,args);
+ };
+})();
+/* also make sure the board is ready for moves when the page opens */
+try{ if(!moveMode){ enableMoveMode(); drawBoard(); } }catch(e){}
 </script>
 </body></html>
