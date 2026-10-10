@@ -31,8 +31,8 @@ export default async (req) => {
   });
 
   try {
-    // Full-effort look — this is how Grandpa read photos before the Oct 7 speed change.
-    let resp = await call({ model: 'claude-sonnet-5', max_tokens: 16000, messages, output_config: { effort: 'high' } });
+    // Medium-effort look: careful enough to read the pieces right, about twice as fast as full effort.
+    let resp = await call({ model: 'claude-sonnet-5', max_tokens: 16000, messages, output_config: { effort: 'medium' } });
     if (resp.status === 400) {
       const peek = await resp.clone().text().catch(() => '');
       if (/output_config|effort/i.test(peek)) resp = await call({ model: 'claude-sonnet-5', max_tokens: 16000, messages });
