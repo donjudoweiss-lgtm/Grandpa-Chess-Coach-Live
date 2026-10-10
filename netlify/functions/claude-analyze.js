@@ -66,9 +66,11 @@ exports.handler = async function (event) {
   const hasImage = !!imageBase64;
   const requestBody = {
     model: 'claude-sonnet-5',
-    max_tokens: hasImage ? 3000 : 1200,
+    max_tokens: hasImage ? 8000 : 1200,
     messages: messages,
-    output_config: { effort: 'low' }
+    // Oct 10: photo reading went back up from LOW to MEDIUM effort — at LOW, Grandpa misread
+    // pieces badly (extra knights, wrong squares). Coaching talk stays fast at LOW.
+    output_config: { effort: hasImage ? 'medium' : 'low' }
   };
   if (!hasImage) requestBody.thinking = { type: 'disabled' };
 
