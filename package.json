@@ -1,0 +1,8 @@
+{
+  "name": "grandpa-chess-coach",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
