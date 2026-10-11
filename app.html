@@ -182,7 +182,7 @@ input[type=file]{position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:
 <button class="longBtn btnPlayGame" onclick="playGame()">▶️ Play game</button>
 </div>
 
-<div class="nowShowing" id="nowShowingBox"></div><button id="resumeGameBtn" style="display:none;max-width:500px;margin:0 auto 10px;padding:12px;border-radius:10px;border:3px solid #fff;background:#2ecc71;color:#000;font-weight:bold;cursor:pointer" onclick="resumeGame()">▶ Resume Your Game</button>
+<div class="nowShowing" id="nowShowingBox" style="position:relative;padding-right:52px"></div><button id="resumeGameBtn" style="display:none;max-width:500px;margin:0 auto 10px;padding:12px;border-radius:10px;border:3px solid #fff;background:#2ecc71;color:#000;font-weight:bold;cursor:pointer" onclick="resumeGame()">▶ Resume Your Game</button>
 
 <!-- PHOTO GALLERY ABOVE BOARD - ALWAYS VISIBLE - STAYS AFTER RESET -->
 <div class="photoGalleryAbove" id="photoGalleryAbove" style="display:none">
@@ -1441,7 +1441,7 @@ function pieceIconHTML(letter,isWhite){
 const startBoard=[[{c:'bR',s:'R'},{c:'bN',s:'N'},{c:'bB',s:'B'},{c:'bQ',s:'Q'},{c:'bK',s:'K'},{c:'bB',s:'B'},{c:'bN',s:'N'},{c:'bR',s:'R'}],[{c:'bP',s:'P'},{c:'bP',s:'P'},{c:'bP',s:'P'},{c:'bP',s:'P'},{c:'bP',s:'P'},{c:'bP',s:'P'},{c:'bP',s:'P'},{c:'bP',s:'P'}],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[{c:'wP',s:'P'},{c:'wP',s:'P'},{c:'wP',s:'P'},{c:'wP',s:'P'},{c:'wP',s:'P'},{c:'wP',s:'P'},{c:'wP',s:'P'},{c:'wP',s:'P'}],[{c:'wR',s:'R'},{c:'wN',s:'N'},{c:'wB',s:'B'},{c:'wQ',s:'Q'},{c:'wK',s:'K'},{c:'wB',s:'B'},{c:'wN',s:'N'},{c:'wR',s:'R'}]];
 let boardState=JSON.parse(JSON.stringify(startBoard)),sel=null,erase=false;
 let savedGameState=null;
-function resumeGame(){if(!savedGameState)return;boardState=savedGameState.boardState;highlightSquares=savedGameState.highlightSquares;savedGameState=null;drawBoard();nowShowingBox.style.display='none';document.getElementById('resumeGameBtn').style.display='none';document.getElementById('board').scrollIntoView({behavior:'smooth',block:'center'});}
+function resumeGame(){if(!savedGameState){try{nowShowingBox.style.display='none';document.getElementById('resumeGameBtn').style.display='none';}catch(e){}return;}boardState=savedGameState.boardState;highlightSquares=savedGameState.highlightSquares;savedGameState=null;drawBoard();nowShowingBox.style.display='none';document.getElementById('resumeGameBtn').style.display='none';document.getElementById('board').scrollIntoView({behavior:'smooth',block:'center'});}
 let moveMode=false,moveFrom=null;
 let threatsVisible=false; // only show the red/green attack highlighting right after a move, not all the time
 // Shared helper: flips move mode ON, resets any stale selection state, updates the button, and
@@ -2209,7 +2209,7 @@ function boardToPieceList(b){
  return 'White pieces: '+(out.w.join(', ')||'none')+'. Black pieces: '+(out.b.join(', ')||'none')+'.';
 }
 function boardToFen(b){let fen='';for(let r=0;r<8;r++){let empty=0;for(let c=0;c<8;c++){let p=b[r][c];if(!p){empty++;}else{ if(empty>0){fen+=empty;empty=0;} let s=p.s; if(p.c[0]==='w') s=s.toUpperCase(); else s=s.toLowerCase(); fen+=s;}} if(empty>0) fen+=empty; if(r<7) fen+='/';} return fen;}
-function loadOpening(fen,name,moves,strat){if(!savedGameState&&JSON.stringify(boardState)!==JSON.stringify(startBoard)){savedGameState={boardState:JSON.parse(JSON.stringify(boardState)),highlightSquares:highlightSquares.slice()};document.getElementById('resumeGameBtn').style.display='block';}highlightSquares=[];boardState=fenToBoard(fen);drawBoard(true);nowShowingBox.style.display='block';nowShowingBox.innerHTML='Now showing: '+name+' — '+moves;document.getElementById('board').scrollIntoView({behavior:'smooth',block:'center'});const t=name+' — '+moves+'. '+strat;addMsg('coach','Coach: ',t);speak(t,'coach');setTimeout(()=>{document.getElementById('openPane').classList.remove('on');document.getElementById('livePane').style.display='block';},200);}
+function loadOpening(fen,name,moves,strat){if(!savedGameState){savedGameState={boardState:JSON.parse(JSON.stringify(boardState)),highlightSquares:highlightSquares.slice()};document.getElementById('resumeGameBtn').style.display='block';}highlightSquares=[];boardState=fenToBoard(fen);drawBoard(true);nowShowingBox.style.display='block';nowShowingBox.innerHTML='Now showing: '+name+' — '+moves;document.getElementById('board').scrollIntoView({behavior:'smooth',block:'center'});const t=name+' — '+moves+'. '+strat;addMsg('coach','Coach: ',t);speak(t,'coach');setTimeout(()=>{document.getElementById('openPane').classList.remove('on');document.getElementById('livePane').style.display='block';},200);}
 function loadTacticDemo(i){const t=tactics[i];if(!t)return;highlightSquares=[];boardState=fenToBoard(t.fen);drawBoard();const threats=computeThreats(boardState);gccLoopTactic(threats.pairs);nowShowingBox.style.display='block';nowShowingBox.innerHTML='Now showing: '+t.name+' — green lines show which piece is attacking which, watch it jump to what it is winning';document.getElementById('board').scrollIntoView({behavior:'smooth',block:'center'});addMsg('coach','Coach: ',t.desc);setTimeout(()=>{document.getElementById('tactPane').classList.remove('on');document.getElementById('livePane').style.display='block';},200);}
 
 /* HOW PIECES MOVE - shows a piece on the board with green dots on its legal squares */
@@ -4263,7 +4263,7 @@ try{ if(!moveMode){ enableMoveMode(); drawBoard(); } }catch(e){}
   var data=sanSteps(o.moves);
   function caption(idx){
    var n=0, mv=esc(o.moves||'').replace(/(\d+\.\s*)?(\S+)/g,function(all,num,tok){ if(/^\d+\.$/.test(tok)) return all; var h=(n===idx)?'<b style="background:#FACC15;color:#000;border-radius:5px;padding:0 3px">'+tok+'</b>':tok; n++; return (num||'')+h; });
-   bar.innerHTML='<div style="font-size:21px;font-weight:bold;color:#2F5233">♟️ '+esc(gccT(o.name))+'</div><div style="font-size:18px;margin:4px 0">'+mv+'</div><div style="font-size:16px;font-weight:normal;margin-top:6px">'+esc(gccT(o.strat||''))+'</div><button type="button" id="gccOpAgain" style="margin-top:10px;padding:10px 14px;border-radius:10px;border:2px solid #2F5233;background:#fff;color:#2F5233;font-weight:bold;font-size:16px;cursor:pointer">↻ Show the moves again</button><button type="button" id="gccOpResume" style="display:block;width:100%;margin-top:10px;padding:16px;border-radius:14px;border:3px solid #fff;background:#2F5233;color:#fff;font-size:20px;font-weight:bold;cursor:pointer;box-shadow:0 0 0 2px #C9A227">▶ Resume my game</button>';
+   bar.style.position='relative';bar.innerHTML='<button type="button" class="gccXClose" aria-label="Close" onclick="resumeGame()">✕</button><div style="font-size:21px;font-weight:bold;color:#2F5233;padding:0 40px">♟️ '+esc(gccT(o.name))+'</div><div style="font-size:18px;margin:4px 0">'+mv+'</div><div style="font-size:16px;font-weight:normal;margin-top:6px">'+esc(gccT(o.strat||''))+'</div><button type="button" id="gccOpAgain" style="margin-top:10px;padding:10px 14px;border-radius:10px;border:2px solid #2F5233;background:#fff;color:#2F5233;font-weight:bold;font-size:16px;cursor:pointer">↻ Show the moves again</button><button type="button" id="gccOpResume" style="display:block;width:100%;margin-top:10px;padding:16px;border-radius:14px;border:3px solid #fff;background:#2F5233;color:#fff;font-size:20px;font-weight:bold;cursor:pointer;box-shadow:0 0 0 2px #C9A227">▶ Resume my game</button>';
    var rs=document.getElementById('gccOpResume'); if(rs) rs.onclick=function(){ resumeGame(); };
    var ag=document.getElementById('gccOpAgain'); if(ag) ag.onclick=function(){ showOnBoard(o); };
   }
@@ -4748,4 +4748,18 @@ body.gccFocus .gccHi.gccPc,body.gccFocus .gccPc.gccHi{animation:gccGlowPc 1.6s e
 })();
 
 </script><!--/GCC_I18N_ENGINE-->
+<style>
+.gccXClose{position:absolute;top:6px;right:6px;width:40px;height:40px;border-radius:50%;border:3px solid #fff;background:#c0392b;color:#fff;font-size:22px;font-weight:bold;line-height:1;cursor:pointer;padding:0;z-index:5;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+</style>
+<script>
+/* build 141: every "Now showing" box and opening view can be closed with a big red ✕ */
+(function(){
+ function addX(){ var b=document.getElementById('nowShowingBox'); if(!b||b.querySelector('.gccXClose')) return;
+  var x=document.createElement('button'); x.type='button'; x.className='gccXClose'; x.setAttribute('aria-label','Close'); x.textContent='✕';
+  x.onclick=function(e){ e.stopPropagation(); if(window.gccViewingOpening||savedGameState){ resumeGame(); } else { b.style.display='none'; try{document.getElementById('resumeGameBtn').style.display='none';}catch(_e){} } };
+  b.insertBefore(x,b.firstChild); }
+ function start(){ var b=document.getElementById('nowShowingBox'); if(!b) return; addX(); new MutationObserver(addX).observe(b,{childList:true}); }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+})();
+</script>
 </body></html>
