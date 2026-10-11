@@ -48,7 +48,10 @@ function speak(apiKey, voiceId, text, modelId) {
       'Content-Type': 'application/json',
       'Accept': 'audio/mpeg'
     },
-    body: JSON.stringify({ text: text, model_id: modelId || VOICE_MODELS.fast })
+    // Oct 10 2026: steady voice settings so Grandpa never drifts high-pitched or rushes.
+    // Higher stability = same calm voice every time; speed below 1 = a relaxed grandpa pace.
+    body: JSON.stringify({ text: text, model_id: modelId || VOICE_MODELS.fast,
+      voice_settings: { stability: 0.8, similarity_boost: 0.85, style: 0, use_speaker_boost: true, speed: 0.9 } })
   });
 }
 
