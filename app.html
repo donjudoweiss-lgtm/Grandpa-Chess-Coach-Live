@@ -4268,7 +4268,7 @@ function gccInTrial(){ if(GCC_STRIPE_CONNECTED) return false; var t=gccTrial(); 
  gccNapText=function(){
   if(!gccInTrial()) return origNapText();
   var p=(typeof gccCurrentPlayer==='function')?gccCurrentPlayer():null; var nm=(p&&p.name)?(', '+p.name):'';
-  return 'What a wonderful start we\'ve had'+nm+'! 😊 You\'ve played all the free trial games — and I\'d love to keep coaching you. Start your subscription and I\'ll be right here: just $9.99 a month, or $99 a year for the whole family.';
+  return 'What a wonderful start we\'ve had'+nm+'! 😊 You\'ve played all the free trial games — and I\'d love to keep coaching you. Start your subscription and I\'ll be right here: one subscription covers the whole family.';
  };
  gccAllow=function(kind,amt){
   if(typeof gccDev!=='undefined'&&gccDev) return true;
