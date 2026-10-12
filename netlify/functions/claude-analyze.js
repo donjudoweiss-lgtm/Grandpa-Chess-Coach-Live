@@ -5,6 +5,8 @@
 // ANTHROPIC_API_KEY holding Don's Anthropic API key. The key never appears
 // in this file and never reaches the iPad.
 
+const usage = require('../lib/usage.js');
+
 exports.handler = async function (event) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -104,6 +106,9 @@ exports.handler = async function (event) {
     }
 
     const data = await resp.json();
+    // build 154: count what this answer cost (real token counts from Anthropic).
+    await usage.record({ kind: hasImage ? 'read-quick' : 'coach', model: requestBody.model, usage: data.usage,
+      images: hasImage ? 1 : 0, cost: usage.anthropicCost(requestBody.model, data.usage), player: payload.gccPlayer }, event);
     // Claude can return several content blocks (e.g. a "thinking" block followed by a
     // "text" block) — grab the first one that actually has text, not just content[0].
     let text = '';

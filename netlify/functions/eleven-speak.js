@@ -10,6 +10,8 @@
 // requests make ONE trip to ElevenLabs instead of two. Same voice, same model
 // (eleven_multilingual_v2), same settings — the sound is unchanged.
 
+const usage = require('../lib/usage.js');
+
 // Remembered between requests while Netlify keeps this helper "warm".
 const voiceIdCache = {};
 
@@ -124,6 +126,9 @@ exports.handler = async function (event) {
       return { statusCode: 502, headers, body: JSON.stringify({ error: msg + ' ' + bodyText.slice(0, 200) }) };
     }
 
+    // build 154: count the characters Grandpa spoke, so Donald can see the real voice cost.
+    await usage.record({ kind: 'voice', model: usedModel, chars: String(text).length,
+      cost: usage.voiceCost(usedModel, String(text).length), player: payload.gccPlayer }, event);
     const arrayBuffer = await speechResp.arrayBuffer();
     const audioBase64 = Buffer.from(arrayBuffer).toString('base64');
 

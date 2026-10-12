@@ -47,6 +47,7 @@ export default async (req) => {
           .filter((x) => x && typeof x.data === 'string' && x.data.length > 100)
           .map((x) => ({ data: x.data, mime: /^image\/(jpeg|png|webp)$/.test(x.mime) ? x.mime : 'image/jpeg' }))
       : [],
+    player: payload.gccPlayer || null,
     at: Date.now()
   });
   const start = await fetch(new URL('/.netlify/functions/photo-work-background', url.origin), {

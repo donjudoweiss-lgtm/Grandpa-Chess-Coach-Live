@@ -4,6 +4,7 @@
 // 30-second limit. The finished answer is saved where photo-job.mjs can hand it to the app.
 // Uses the same ANTHROPIC_API_KEY environment variable as claude-analyze.js.
 import { getStore } from '@netlify/blobs';
+import usage from '../lib/usage.js';
 
 const API_URL = process.env.GCC_TEST_API_URL || 'https://api.anthropic.com/v1/messages';
 
@@ -62,6 +63,10 @@ export default async (req) => {
       return done({ status: 'error', error: msg });
     }
     const data = await resp.json();
+    // build 154: count what this board reading cost (real token counts from Anthropic).
+    const usedModel = data.model && /sonnet/.test(data.model) ? 'claude-sonnet-5' : (data.model && /opus/.test(data.model) ? 'claude-opus-5-5' : strong);
+    await usage.record({ kind: extras.length ? 'read-video' : 'read-photo', model: usedModel, usage: data.usage,
+      images: 1 + extras.length, cost: usage.anthropicCost(usedModel, data.usage), player: job.player });
     const block = Array.isArray(data.content) ? data.content.find((b) => b && b.type === 'text' && b.text) : null;
     if (!block) return done({ status: 'error', error: 'Grandpa could not make out the board. Please try another picture.' });
     await done({ status: 'done', text: block.text });
