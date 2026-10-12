@@ -267,5 +267,33 @@ body{margin:0}
 })();
 </script>
 
+<script>
+/* build 155: tester invite links (…/?invite=RUTH-4821). The code is saved for the app, checked with the
+   server, and the free-trial line becomes a personal welcome for the tester's 3 free weeks. */
+(function(){
+ var KEY='gcc_invite_v1';
+ try{ var m=location.search.match(/[?&]invite=([A-Za-z0-9-]{3,40})/); if(m){ var c=m[1].toUpperCase(), old=null; try{old=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){} if(!old||old.code!==c) localStorage.setItem(KEY,JSON.stringify({code:c})); } }catch(e){}
+ function show(d){
+  if(!d||!d.ok) return;
+  var t=document.querySelector('#subscribe .trial'), g=document.querySelector('#subscribe .go');
+  var nm=d.name?(', '+d.name):'';
+  if(d.active){
+   if(t) t.textContent='Welcome'+nm+'! You’re one of our first testers — Grandpa is yours, free, for '+(d.daysLeft===1?'1 more day':d.daysLeft+' more days')+'.';
+   if(g) g.textContent='Start playing with Grandpa';
+  } else {
+   if(t) t.textContent='Thank you'+(d.name?(', '+d.name+','):'')+' for testing Grandpa! Your three free weeks have ended — we’ll let you know when he opens to everyone.';
+   if(g) g.style.display='none';
+  }
+  try{ if(typeof fitSubscribe==='function') fitSubscribe(); }catch(e){}
+ }
+ var v=null; try{ v=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){}
+ if(!v||!v.code) return;
+ if(v.ok) show(v);
+ fetch('/.netlify/functions/invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:v.code})})
+  .then(function(r){ return r.ok?r.json():null; })
+  .then(function(d){ if(d&&d.ok){ localStorage.setItem(KEY,JSON.stringify(d)); show(d); } else if(d&&d.reason==='unknown'){ localStorage.removeItem(KEY); } })
+  .catch(function(){});
+})();
+</script>
 </body>
 </html>

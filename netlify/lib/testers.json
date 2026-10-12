@@ -1,0 +1,7 @@
+{
+  "_about": "Tester invite codes (build 155). Each code gives one family/friend tester DAYS free days of the full app, starting the first time they open their link. Add a line per tester; codes are not case-sensitive.",
+  "days": 21,
+  "codes": {
+    "DONALD-TEST": { "name": "Donald" }
+  }
+}
