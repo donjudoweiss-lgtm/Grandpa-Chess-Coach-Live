@@ -3,7 +3,7 @@
 // takes longer. So this function only SAVES the photo and starts the reading in the background
 // (photo-work-background.mjs, which may run up to 15 minutes). The app then asks this same
 // function every few seconds "is it ready yet?" until Grandpa's answer is there.
-//   POST  {prompt, imageBase64, imageMime}  ->  {jobId}
+//   POST  {prompt, imageBase64, imageMime, extraImages?:[{data,mime}]}  ->  {jobId}
 //   GET   ?id=<jobId>                       ->  {status:'pending'} | {status:'done', text} | {status:'error', error}
 import { getStore } from '@netlify/blobs';
 
@@ -41,6 +41,12 @@ export default async (req) => {
     prompt: String(payload.prompt),
     imageBase64: String(payload.imageBase64),
     imageMime: payload.imageMime || 'image/jpeg',
+    // build 152: stills from a short video of the board (frames 2, 3, …) — optional.
+    extraImages: Array.isArray(payload.extraImages)
+      ? payload.extraImages.slice(0, 6)
+          .filter((x) => x && typeof x.data === 'string' && x.data.length > 100)
+          .map((x) => ({ data: x.data, mime: /^image\/(jpeg|png|webp)$/.test(x.mime) ? x.mime : 'image/jpeg' }))
+      : [],
     at: Date.now()
   });
   const start = await fetch(new URL('/.netlify/functions/photo-work-background', url.origin), {

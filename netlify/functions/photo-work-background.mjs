@@ -20,10 +20,16 @@ export default async (req) => {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return done({ status: 'error', error: 'This server is missing its Anthropic key (ANTHROPIC_API_KEY in Netlify).' });
 
-  const messages = [{ role: 'user', content: [
-    { type: 'image', source: { type: 'base64', media_type: job.imageMime, data: job.imageBase64 } },
-    { type: 'text', text: job.prompt }
-  ] }];
+  const extras = Array.isArray(job.extraImages) ? job.extraImages : [];
+  const content = [];
+  if (extras.length) content.push({ type: 'text', text: 'IMAGE 1:' });
+  content.push({ type: 'image', source: { type: 'base64', media_type: job.imageMime, data: job.imageBase64 } });
+  extras.forEach((x, i) => {
+    content.push({ type: 'text', text: 'IMAGE ' + (i + 2) + ':' });
+    content.push({ type: 'image', source: { type: 'base64', media_type: x.mime || 'image/jpeg', data: x.data } });
+  });
+  content.push({ type: 'text', text: job.prompt });
+  const messages = [{ role: 'user', content }];
   const call = (body) => fetch(API_URL, {
     method: 'POST',
     headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
