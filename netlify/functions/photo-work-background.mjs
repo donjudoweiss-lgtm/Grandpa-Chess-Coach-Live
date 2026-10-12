@@ -37,11 +37,21 @@ export default async (req) => {
   });
 
   try {
-    // Medium-effort look: careful enough to read the pieces right, about twice as fast as full effort.
-    let resp = await call({ model: 'claude-sonnet-5', max_tokens: 16000, messages, output_config: { effort: 'medium' } });
+    // build 153: Donald wants the board read as accurately as possible, so photos go to the strongest
+    // model at high effort (slower and costs a little more). If that model is unavailable on this
+    // account, fall back to the earlier Sonnet medium-effort reading so a picture is never lost.
+    const strong = process.env.GCC_PHOTO_MODEL || 'claude-opus-5-5';
+    let resp = await call({ model: strong, max_tokens: 32000, messages, output_config: { effort: 'high' } });
     if (resp.status === 400) {
       const peek = await resp.clone().text().catch(() => '');
-      if (/output_config|effort/i.test(peek)) resp = await call({ model: 'claude-sonnet-5', max_tokens: 16000, messages });
+      if (/output_config|effort/i.test(peek)) resp = await call({ model: strong, max_tokens: 32000, messages });
+    }
+    if (resp.status === 400 || resp.status === 404 || resp.status === 403 || resp.status === 529 || resp.status === 500) {
+      resp = await call({ model: 'claude-sonnet-5', max_tokens: 16000, messages, output_config: { effort: 'medium' } });
+      if (resp.status === 400) {
+        const peek = await resp.clone().text().catch(() => '');
+        if (/output_config|effort/i.test(peek)) resp = await call({ model: 'claude-sonnet-5', max_tokens: 16000, messages });
+      }
     }
     if (!resp.ok) {
       const t = await resp.text().catch(() => '');
