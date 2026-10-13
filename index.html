@@ -160,6 +160,14 @@ body:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;ba
 body{margin:0}
 #subscribe .price.tbd{font-size:24px!important;line-height:1.3!important;margin:6px 0!important}
 </style>
+<style>
+body.fitHome .painting{aspect-ratio:720/1330}
+body.fitHome .painting .logoBox:not(.theater):not(.big){left:25%;width:50%;top:117cqw}
+body.fitHome .tourRow .tapHint{display:none}
+body.fitHome .tourRow{gap:12px;top:104%}
+body.fitHome .tourRow .subBtn2{margin:0;padding:0 20px;height:44px;font-size:1rem;white-space:nowrap}
+body.fitHome .tourRow .tourBtn{white-space:nowrap}
+</style>
 <style id="subFit">
 /* Oct 10: the subscribe box fits on one iPhone screen — plans side by side, button always visible */
 @media (max-width:560px){
@@ -294,6 +302,41 @@ body{margin:0}
   .then(function(r){ return r.ok?r.json():null; })
   .then(function(d){ if(d&&d.ok){ localStorage.setItem(KEY,JSON.stringify(d)); show(d); } else if(d&&d.reason==='unknown'){ localStorage.removeItem(KEY); } })
   .catch(function(){});
+})();
+</script>
+<script>
+/* build 158: the whole opening page fits on one screen — the painting, the bronze Grandpa, and both
+   buttons ("The Magic Begins" and "Subscribe") show without scrolling. On a phone the bronze Grandpa
+   stands a little smaller over the chessboard, and the two buttons sit side by side beneath him.
+   It returns to the full layout while the tour plays or the plans are open. */
+(function(){
+ var sheet=document.querySelector('main.sheet'), sub=document.getElementById('subscribe'), veil=document.getElementById('veil'), btn=document.getElementById('subBtn');
+ var row=document.querySelector('.tourRow'), card=btn&&btn.parentNode;
+ if(!sheet||!btn||!row||!card) return;
+ function bottomNeed(){ return Math.max(btn.getBoundingClientRect().bottom, row.getBoundingClientRect().bottom)+window.scrollY+14; }
+ function setCompact(on){
+  document.body.classList.toggle('fitHome',on);
+  if(on&&btn.parentNode!==row) row.appendChild(btn);
+  if(!on&&btn.parentNode!==card) card.insertBefore(btn,card.firstChild);
+ }
+ function fitHome(){
+  try{
+   sheet.style.maxWidth='';
+   if((sub&&!sub.hidden)||(veil&&veil.classList.contains('on'))){ setCompact(false); return; }
+   var avail=(window.visualViewport?visualViewport.height:innerHeight);
+   setCompact(false);
+   if(bottomNeed()<=avail+1) return;
+   setCompact(true);
+   for(var i=0;i<4;i++){
+    var need=bottomNeed(); if(need<=avail+1) break;
+    var w=sheet.getBoundingClientRect().width;
+    sheet.style.maxWidth=Math.max(240,Math.floor(w*avail/need))+'px';
+   }
+  }catch(e){}
+ }
+ fitHome(); addEventListener('load',fitHome); addEventListener('resize',fitHome);
+ try{ if(window.visualViewport) visualViewport.addEventListener('resize',fitHome); }catch(e){}
+ try{ var mo=new MutationObserver(function(){ setTimeout(fitHome,0); }); if(sub) mo.observe(sub,{attributes:true,attributeFilter:['hidden']}); if(veil) mo.observe(veil,{attributes:true,attributeFilter:['class']}); }catch(e){}
 })();
 </script>
 </body>
