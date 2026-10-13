@@ -164,9 +164,8 @@ body{margin:0}
 body.fitHome .painting{aspect-ratio:720/1270;overflow:hidden}
 body.fitHome .painting img.art{height:auto;aspect-ratio:720/2040;margin-top:-24%;--vert:linear-gradient(transparent 0,#000 8%,#000 50%,transparent 63%)}
 body.fitHome .painting .logoBox:not(.theater):not(.big){left:10%;width:80%;top:76cqw}
-body.fitHome .tourRow .tapHint{display:none}
 body.fitHome .tourRow{gap:12px;top:104%}
-body.fitHome .tourRow .subBtn2{margin:0;padding:0 20px;height:44px;font-size:1rem;white-space:nowrap}
+body.fitHome .subBtn2{display:none}
 body.fitHome .tourRow .tourBtn{white-space:nowrap}
 </style>
 <style id="subFit">
@@ -314,11 +313,9 @@ body.fitHome .tourRow .tourBtn{white-space:nowrap}
  var sheet=document.querySelector('main.sheet'), sub=document.getElementById('subscribe'), veil=document.getElementById('veil'), btn=document.getElementById('subBtn');
  var row=document.querySelector('.tourRow'), card=btn&&btn.parentNode;
  if(!sheet||!btn||!row||!card) return;
- function bottomNeed(){ return Math.max(btn.getBoundingClientRect().bottom, row.getBoundingClientRect().bottom)+window.scrollY+14; }
+ function bottomNeed(){ return row.getBoundingClientRect().bottom+window.scrollY+14; }
  function setCompact(on){
   document.body.classList.toggle('fitHome',on);
-  if(on&&btn.parentNode!==row) row.appendChild(btn);
-  if(!on&&btn.parentNode!==card) card.insertBefore(btn,card.firstChild);
  }
  function fitHome(){
   try{
