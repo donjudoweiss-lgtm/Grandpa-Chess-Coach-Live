@@ -179,6 +179,7 @@ body.fitHome .tourRow .tourBtn{white-space:nowrap}
  #subscribe .plan{flex:1 1 0!important;padding:.7rem .4rem .65rem!important}
  #subscribe .pl{font-size:.85rem!important}
  #subscribe .plan .price{font-size:1.75rem!important;line-height:1.1;text-align:center}
+ #subscribe .plan .price.tbd{font-size:1.2rem!important;line-height:1.2!important}
  #subscribe .price small{display:block;font-size:.85rem}
  #subscribe .per{font-size:.78rem;text-align:center}
  #subscribe .ribbon{font-size:.62rem;padding:.2rem .5rem;margin:-.1rem 0 .3rem;letter-spacing:.02em}
@@ -264,14 +265,16 @@ body.fitHome .tourRow .tourBtn{white-space:nowrap}
     timer=setTimeout(()=>{magic.classList.remove('go');void magic.offsetWidth;magic.classList.add('go','sparksOnly');
       timer=setTimeout(()=>{startVideo();setTimeout(()=>magic.classList.remove('go','sparksOnly'),1800);},250);},1350);
   });
-  function fitSubscribe(){const sec2=document.getElementById('subscribe');if(sec2.hidden)return;sec2.style.zoom='';const h=sec2.getBoundingClientRect().height,avail=(window.visualViewport?visualViewport.height:innerHeight)-20;if(h>avail)sec2.style.zoom=(avail/h).toFixed(3);}addEventListener('resize',()=>{try{fitSubscribe()}catch(e){}});function showSubscribe(){const sec2=document.getElementById('subscribe');sec2.hidden=false;try{fitSubscribe()}catch(e){}
-    sec2.classList.remove('fadeIn');const y=sec2.getBoundingClientRect().top+scrollY-10;scrollTo({top:Math.max(0,y),behavior:reduce?'auto':'smooth'});void sec2.offsetWidth;sec2.classList.add('fadeIn');}
+  function fitSubscribe(){const sec2=document.getElementById('subscribe');if(sec2.hidden)return;sec2.style.zoom='';const h=sec2.getBoundingClientRect().height,avail=(window.visualViewport?visualViewport.height:innerHeight)-20;if(h>avail)sec2.style.zoom=(avail/h).toFixed(3);}addEventListener('resize',()=>{try{fitSubscribe()}catch(e){}});function showSubscribe(instant){const sec2=document.getElementById('subscribe');sec2.hidden=false;try{fitSubscribe()}catch(e){}
+    sec2.classList.remove('fadeIn');const y=sec2.getBoundingClientRect().top+scrollY-10;scrollTo({top:Math.max(0,y),behavior:(reduce||instant)?'instant':'smooth'});void sec2.offsetWidth;sec2.classList.add('fadeIn');}
   const sb=document.getElementById('subBtn');sb.addEventListener('click',()=>{showSubscribe();sb.setAttribute('aria-expanded','true');});
   v.addEventListener('ended',()=>{
-    if(reduce){stop();showSubscribe();return;}
-    const a=reel.animate([{opacity:1,transform:'translateX(-50%) scale(1)'},{opacity:0,transform:'translateX(-50%) scale(.96)'}],{duration:900,easing:'ease-in',fill:'forwards'});
-    veil.style.transition='opacity .9s';
-    a.onfinish=()=>{a.cancel();stop();setTimeout(showSubscribe,350);};
+    if(reduce){stop();showSubscribe(true);return;}
+    /* seamless: the pricing page is put in place right behind the last frame, then the video dissolves into it */
+    showSubscribe(true);
+    veil.style.transition='opacity 1.2s';veil.classList.remove('on');rs.classList.remove('on');
+    const a=reel.animate([{opacity:1,transform:'translateX(-50%) scale(1)'},{opacity:0,transform:'translateX(-50%) scale(1.03)'}],{duration:1200,easing:'ease-in-out',fill:'forwards'});
+    a.onfinish=()=>{a.cancel();stop();};
   });
 })();
 </script>
