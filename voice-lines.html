@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Grandpa's Voice Lines</title>
+<style>
+:root{--ink:#2e2014;--muted:#6b5b45;--green:#2F5233;--gold:#c9a227;--paper:#f6ecd6}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,#efe3c9,#d8c29a);color:var(--ink);font:18px/1.45 Georgia,'Times New Roman',serif;padding:24px 16px 48px}
+main{max-width:560px;margin:0 auto}
+h1{font-size:1.7rem;color:var(--green);margin:0 0 .3rem;text-align:center}
+.lead{color:var(--muted);text-align:center;margin:0 0 1.4rem;font-style:italic}
+.line{background:var(--paper);border:1.5px solid #b08d3c;border-radius:10px;padding:16px;margin:0 0 18px;box-shadow:0 4px 14px rgba(60,40,15,.15)}
+.line label{display:block;font-weight:700;color:var(--green);margin-bottom:6px}
+textarea{width:100%;font:inherit;padding:10px;border:1px solid #c8b07a;border-radius:6px;background:#fffaf0;resize:vertical;min-height:64px}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+button,a.save{font:700 1rem Georgia,serif;padding:12px 20px;border-radius:999px;border:1.5px solid var(--gold);cursor:pointer;text-decoration:none;display:inline-block}
+button.make{background:linear-gradient(180deg,#3d6b43,#2F5233);color:#f3e7c4}
+button.make:disabled{opacity:.6;cursor:wait}
+a.save,button.share{background:#fff7e2;color:var(--ink)}
+.hide{display:none!important}
+audio{width:100%;margin-top:12px}
+.msg{margin-top:10px;font-size:.95rem;color:#8a2d1d}
+.ok{color:var(--green)}
+.how{background:rgba(255,250,235,.7);border-radius:10px;padding:14px 16px;font-size:.95rem;color:var(--muted)}
+.how ol{margin:.3rem 0 0;padding-left:1.3rem}
+</style></head>
+<body><main>
+<h1>Grandpa’s Voice Lines</h1>
+<p class="lead">A private page for Donald. Tap “Make the voice,” listen, then save each line.</p>
+
+<div class="line" data-file="grandpa-hello.mp3">
+  <label>Line 1 — for the start of the video</label>
+  <textarea>Hello there, I'm Grandpa.</textarea>
+  <div class="row"><button class="make" type="button">🎙️ Make the voice</button><a class="save hide" download="grandpa-hello.mp3">⬇ Save</a><button class="share hide" type="button">Share…</button></div>
+  <audio controls class="hide"></audio><div class="msg"></div>
+</div>
+
+<div class="line" data-file="grandpa-waiting.mp3">
+  <label>Line 2 — for the cottage by the fire</label>
+  <textarea>Grandpa is waiting for you.</textarea>
+  <div class="row"><button class="make" type="button">🎙️ Make the voice</button><a class="save hide" download="grandpa-waiting.mp3">⬇ Save</a><button class="share hide" type="button">Share…</button></div>
+  <audio controls class="hide"></audio><div class="msg"></div>
+</div>
+
+<div class="how"><b>Then:</b>
+  <ol><li>Tap <b>Save</b> (or <b>Share…</b> → <b>Save to Files</b>) for each line.</li>
+  <li>In the Claude app, tap <b>+</b> and attach the two sound files.</li></ol>
+  You can change the words in the boxes before making the voice. Each line uses only a few seconds of ElevenLabs credits.
+</div>
+</main>
+<script>
+(function(){
+  var NAME='Grandpa Chess Coach';
+  try{ NAME=localStorage.getItem('grandpa_eleven_voice_name_v1')||NAME; }catch(e){}
+  document.querySelectorAll('.line').forEach(function(box){
+    var btn=box.querySelector('.make'),save=box.querySelector('.save'),share=box.querySelector('.share'),au=box.querySelector('audio'),msg=box.querySelector('.msg'),ta=box.querySelector('textarea'),file=box.dataset.file,blob=null;
+    btn.addEventListener('click',async function(){
+      var text=ta.value.trim(); if(!text) return;
+      btn.disabled=true; btn.textContent='Grandpa is speaking…'; msg.className='msg'; msg.textContent='';
+      try{
+        var r=await fetch('/.netlify/functions/eleven-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text,voiceName:NAME,voiceModel:'rich',gccPlayer:{id:'donald-video',name:'Donald (video lines)'}})});
+        var d=await r.json().catch(function(){return {};});
+        if(!r.ok||!d.audio) throw new Error(d.error||('The voice service answered '+r.status));
+        var bin=atob(d.audio),u=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+        blob=new Blob([u],{type:'audio/mpeg'}); var url=URL.createObjectURL(blob);
+        au.src=url; au.classList.remove('hide'); save.href=url; save.classList.remove('hide');
+        if(navigator.canShare&&navigator.canShare({files:[new File([blob],file,{type:'audio/mpeg'})]})) share.classList.remove('hide');
+        msg.className='msg ok'; msg.textContent='Ready — listen, then save.'; au.play().catch(function(){});
+      }catch(e){ msg.textContent='Sorry — that didn’t work: '+e.message; }
+      btn.disabled=false; btn.textContent='🎙️ Make it again';
+    });
+    share.addEventListener('click',function(){ if(!blob) return; navigator.share({files:[new File([blob],file,{type:'audio/mpeg'})],title:file}).catch(function(){}); });
+  });
+})();
+</script>
+</body></html>
