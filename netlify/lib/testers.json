@@ -2,6 +2,44 @@
   "_about": "Tester invite codes (build 155). Each code gives one family/friend tester DAYS free days of the full app, starting the first time they open their link. Add a line per tester; codes are not case-sensitive.",
   "days": 21,
   "codes": {
-    "DONALD-TEST": { "name": "Donald" }
+    "DONALD-TEST": {
+      "name": "Donald"
+    },
+    "DANE-6296": {
+      "name": "Dane"
+    },
+    "DILLON-3655": {
+      "name": "Dillon"
+    },
+    "JOHN-7952": {
+      "name": "John"
+    },
+    "GARRY-8788": {
+      "name": "Garry"
+    },
+    "STEVEC-6072": {
+      "name": "Steve"
+    },
+    "STEVEM-1952": {
+      "name": "Steve"
+    },
+    "ERIC-4257": {
+      "name": "Eric"
+    },
+    "JANICE-6571": {
+      "name": "Janice"
+    },
+    "BRENDAN-1082": {
+      "name": "Brendan"
+    },
+    "DAVE-8970": {
+      "name": "Dave"
+    },
+    "AL-3310": {
+      "name": "Al"
+    },
+    "MARKO-1020": {
+      "name": "Marko"
+    }
   }
 }
