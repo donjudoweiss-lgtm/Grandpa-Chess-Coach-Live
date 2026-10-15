@@ -256,11 +256,11 @@ body.fitHome .tourRow .tourBtn{white-space:nowrap}
     veil.classList.add('on'); reel.classList.add('on'); rs.classList.add('on'); document.getElementById('reelSub').classList.add('on');document.getElementById('reelSnd').classList.add('on'); box.classList.add('playing');
     if(!reduce){ const r1=reel.getBoundingClientRect(); const dx=vanish.x-(r1.left+r1.width/2), dy=vanish.y-(r1.top+r1.height/2);
       reel.animate([{transform:`translateX(-50%) translate(${dx}px,${dy}px) scale(.06)`,opacity:0},{offset:.35,opacity:1},{transform:'translateX(-50%)',opacity:1}],{duration:1100,easing:'cubic-bezier(.2,.7,.2,1)'}); }
-    v.currentTime=0; v.muted=!soundOn; v.play().catch(()=>{ /* if the phone refuses sound, play silently instead of stopping */ setSound(false); v.play().catch(stop); });}
+    v.currentTime=0; v.muted=!soundOn; v.play().catch(()=>{ /* Oct 15: if the phone refuses sound, keep playing silently and show a clear 'Tap for sound' button; one tap brings the music and voice back */ v.muted=true; snd.textContent='🔇 Tap for sound'; snd.setAttribute('aria-label','Turn the sound on'); snd.style.opacity='1'; v.play().catch(stop); });}
   rs.addEventListener('click',stop);
   const snd=document.getElementById('reelSnd');let soundOn=true;
   function setSound(on){soundOn=on;v.muted=!on;snd.textContent=on?'♪ On':'♪ Off';snd.setAttribute('aria-label',on?'Turn the music off':'Turn the music on');}
-  snd.addEventListener('click',()=>setSound(!soundOn));
+  snd.addEventListener('click',()=>{ if(v.muted&&soundOn){ setSound(true); } else { setSound(!soundOn); } snd.style.opacity=''; if(!v.muted){ v.play().catch(()=>{}); } });
   const rsub=document.getElementById('reelSub');rsub.addEventListener('click',()=>{stop();showSubscribe();const b=document.getElementById('subBtn');if(b)b.setAttribute('aria-expanded','true');});
   veil.addEventListener('click',stop);
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&reel.classList.contains('on'))stop();});
