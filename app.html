@@ -1134,6 +1134,9 @@ function setVoiceMode(m){try{localStorage.setItem(VOICE_MODE_KEY,m);}catch(e){}
 function speak(t,w){
  /* build 115: SAVE MONEY — whatever the AI writes, Grandpa says at most two sentences out loud. */
  if(w==='coach' && !window.gccSpeakWhole){ try{ if(typeof gccIsAiText==='function' && gccIsAiText(t) && typeof gccShort==='function') t=gccShort(t); }catch(e){} }
+ /* build 161 (Oct 15, Donald): STARTER PLAN — Grandpa says only the FIRST short sentence of each comment out loud;
+    everything he thinks is still written in full in his bubble. Full plan = unchanged. */
+ if(w==='coach' && !window.gccSpeakWhole){ try{ if(gccPlan()==='starter' && typeof gccIsAiText==='function' && gccIsAiText(t)) t=gccStarterLine(t); }catch(e){} }
  if(typeof gccDev!=='undefined'&&gccDev&&w==='coach'){ try{ gccTrace('speak called'+(isStopped?' — but STOPPED':'')+(!voiceOn?' — but voice OFF':'')+(isGrandpaSpeaking()?' — waiting, Grandpa marked as already speaking':'')); }catch(e){} }
 // STOPPED = silent
  if(isStopped) return;
@@ -2680,6 +2683,19 @@ function gccTrimSentences(t,max){ t=String(t||'').trim();
  return out.replace(new RegExp(H+H+H,'g'),'...').replace(new RegExp(H,'g'),'.'); }
 /* build 117: SAVE MONEY — Grandpa says at most 2 sentences and 30 words. Keeps whole sentences when
    they fit; if one sentence alone runs long, it ends cleanly at a comma or dash instead of mid-thought. */
+/* build 161: which plan is this player on? 'full' (Grandpa speaks his comments) or 'starter' (one spoken line each).
+   Until subscriptions exist it is set with ?plan=starter or ?plan=full at the end of the address, and remembered on the device. */
+function gccPlan(){
+ try{ var m=location.search.match(/[?&]plan=(starter|full)\b/i); if(m) localStorage.setItem('gcc_plan_v1',m[1].toLowerCase()); }catch(e){}
+ try{ return localStorage.getItem('gcc_plan_v1')==='starter'?'starter':'full'; }catch(e){ return 'full'; }
+}
+function gccStarterLine(t){
+ t=String(t||'').trim(); if(!t) return t;
+ var cj=t.match(/^[^。！？]*[。！？]/); if(cj && !/\s/.test(t.slice(0,cj[0].length))) return cj[0];
+ var one=gccTrimSentences(t,1), words=one.split(/\s+/).filter(Boolean).length;
+ if(words<3){ var two=gccTrimSentences(t,2); if(two.split(/\s+/).filter(Boolean).length<=25) one=two; }
+ return one;
+}
 function gccShort(t){
  /* build 148: Grandpa always FINISHES his thought. Keep up to 2 whole sentences when they are short;
     otherwise keep the first sentence WHOLE. Never cut in the middle of a sentence — that used to end him
