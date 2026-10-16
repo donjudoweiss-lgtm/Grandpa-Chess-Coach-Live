@@ -1,0 +1,4 @@
+stockfish.js — the Stockfish chess engine compiled to JavaScript by Nathan Rugg.
+Stockfish is free software under the GNU General Public License v3.
+Source code: https://github.com/nmrugg/stockfish.js  and  https://github.com/official-stockfish/Stockfish
+Grandpa Chess Coach uses it, unchanged, to check moves before Grandpa comments on them.
