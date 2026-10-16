@@ -1876,6 +1876,7 @@ function performMove(fr,fc,tr,tc,skipAnim,isSetup){
   analyzeBoard({from:fromAlg,to:toAlg,piece:(moving.c[0]==='w'?'white ':'black ')+(PIECE_FULL_NAME[moving.s]||'piece'),captured:captured?(PIECE_FULL_NAME[captured.s]||'piece'):null});
   return;
  }
+ gccSFPrefetch(moving.c[0]==='w'?'b':'w');
  try{ if(window.gccPreMove) window.gccPreMove.uci=fromAlg+toAlg+((moving.s==='P'&&(tr===0||tr===7))?'q':''); }catch(e){}
  commentOnMove(fromAlg,toAlg,moving.s,moving.c[0]==='w',captured?captured.s:null);
 }
@@ -2306,7 +2307,7 @@ async function playGame(){
  enableMoveMode(); drawBoard();
  nowShowingBox.style.display='block';
  nowShowingBox.innerHTML='🎮 GAME ON, '+name+'! Your opponent plays White and moves first — copy their move onto the board here.';
- const t='Let\'s play, '+name+'! Your opponent has White, so they move first. When they do, copy their move onto the board here, and then it\'s your turn.';
+ const t='Let\'s play, '+name+'! One thing before we start: give me a little time between moves — these old eyes aren\'t as sharp as they used to be. Your opponent has White, so they move first. When they do, copy their move onto the board here, and then it\'s your turn.'; gccSFPrefetch('w');
  try{ gccBubble(t); }catch(e){}
  isStopped=false; speak(t,'coach');
 }
@@ -2320,7 +2321,7 @@ function startPlayingNow(){
  nowShowingBox.innerHTML='🎮 GAME ON, '+name+'! Tap or drag one of your pieces to make your move.';
  document.getElementById('nowShowingBox').scrollIntoView({behavior:'smooth',block:'center'});
  addSystem('▶️ Let\'s play, '+name+'! Tap or drag one of your pieces to make your move — Grandpa will react right after.');
- var lp='Let\'s play, '+name+'! Make your move on your real board, then copy it here: tap the piece, then tap its square.';
+ var lp='Let\'s play, '+name+'! One thing before we start: give me a little time between moves — these old eyes aren\'t as sharp as they used to be. Make your move on your real board, then copy it here: tap the piece, then tap its square.'; gccSFPrefetch('w');
  try{ gccBubble(lp); }catch(e){}
  isStopped=false; speak(lp,'coach');
 }
@@ -2435,7 +2436,9 @@ function gccFullFen(board,side){
  try{ if(gccEpPawn){ var pp=board[gccEpPawn.r][gccEpPawn.c]; if(pp&&pp.s==='P'&&pp.c[0]!==side){ var er=pp.c[0]==='w'?gccEpPawn.r+1:gccEpPawn.r-1; ep='abcdefgh'[gccEpPawn.c]+(8-er); } } }catch(e){}
  return place+' '+side+' '+(cr||'-')+' '+ep+' 0 1';
 }
+var GCC_SF_MS=1000, gccSFcache={}, gccSFkeys=[];
 function gccEngine(fen,ms){
+ var key=fen+'|'+ms; if(gccSFcache[key]) return gccSFcache[key];
  var job=function(){ return new Promise(function(res){
   var w=gccSFWorker(); if(!w) return res(null);
   var last=null, done=false;
@@ -2450,8 +2453,12 @@ function gccEngine(fen,ms){
   };
   w.postMessage('position fen '+fen); w.postMessage('go movetime '+ms);
  }); };
- gccSFq=gccSFq.then(job,job); return gccSFq;
+ gccSFq=gccSFq.then(job,job); var pr=gccSFq;
+ gccSFcache[key]=pr; gccSFkeys.push(key); if(gccSFkeys.length>60) delete gccSFcache[gccSFkeys.shift()];
+ pr.then(function(v){ if(!v) delete gccSFcache[key]; });
+ return pr;
 }
+function gccSFPrefetch(side){ try{ gccEngine(gccFullFen(boardState,side),GCC_SF_MS); }catch(e){} }
 function gccNoEngineWords(t){ try{ if(!/\b(engine|stockfish|computer)\b/i.test(t||'')) return t; var keep=(String(t).match(/[^.!?]+[.!?]*/g)||[]).filter(function(x){return !/\b(engine|stockfish|computer)\b/i.test(x);}); return keep.map(function(x){return x.trim();}).join(' ')||t.replace(/\b(the )?(engine|stockfish|computer)\b/gi,'Grandpa'); }catch(e){ return t; } }
 function gccEngCp(r){ if(!r) return 0; if(r.kind==='mate') return (r.val>0?1:-1)*(100000-Math.abs(r.val)*100); return r.val; }
 function gccUciWords(uci,board){
@@ -2481,9 +2488,9 @@ function gccEvalWords(cp,side){ /* cp is from the point of view of side */
 /* Facts about the move just played, from the engine. preFen/postFen are full FENs before and after. */
 async function gccEngineMoveFacts(preFen,preBoard,uci,side,name){
  try{
-  var before=await gccEngine(preFen,1300); if(!before||!before.best) return '';
+  var before=await gccEngine(preFen,GCC_SF_MS); if(!before||!before.best) return '';
   var postBoard=boardState, other=side==='w'?'b':'w';
-  var after=await gccEngine(gccFullFen(postBoard,other),1300);
+  var after=await gccEngine(gccFullFen(postBoard,other),GCC_SF_MS);
   var bestCp=gccEngCp(before), afterCp=after?-gccEngCp(after):bestCp;
   var played=uci.slice(0,4)===before.best.slice(0,4), loss=Math.max(0,bestCp-afterCp);
   if(after&&!after.best&&gccSideStatus(other)==='checkmate'){ played=true; loss=0; }
@@ -2503,7 +2510,7 @@ async function gccEngineNowFacts(){
   var side=null;
   if(playingColor==='white'||playingColor==='black'){ var mine=playingColor[0]; side=(whoseTurn==='opponent')?(mine==='w'?'b':'w'):mine; }
   if(!side) return '';
-  var r=await gccEngine(gccFullFen(boardState,side),1500); if(!r) return '';
+  var r=await gccEngine(gccFullFen(boardState,side),GCC_SF_MS); if(!r) return '';
   var SN={w:'White',b:'Black'};
   var f=' CERTAIN CHESS FACTS FROM A DEEP CALCULATION for the board right now, '+SN[side]+' to move — CERTAIN: ';
   if(!r.best) return f+(gccSideStatus(side)==='checkmate'?SN[side]+' is checkmated.':SN[side]+' has no legal move.');
