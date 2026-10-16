@@ -5291,4 +5291,21 @@ body.gccFocus .gccHi.gccPc,body.gccFocus .gccPc.gccHi{animation:gccGlowPc 1.6s e
  }catch(e){}
 })();
 </script>
+<!-- Oct 16 2026: while a player looks at an opening, a Resume button always stays on the screen -->
+<button type="button" id="gccFloatResume" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:9000;width:min(92vw,460px);padding:16px;border-radius:14px;border:3px solid #fff;background:#2F5233;color:#fff;font:bold 20px Georgia,serif;cursor:pointer;box-shadow:0 0 0 2px #C9A227,0 8px 24px rgba(0,0,0,.45)">▶ Resume my game</button>
+<script>
+(function(){
+ var fb=document.getElementById('gccFloatResume'); if(!fb) return;
+ fb.addEventListener('click',function(){ try{ resumeGame(); }catch(e){} fb.style.display='none'; });
+ function onScreen(id){ var e=document.getElementById(id); if(!e||getComputedStyle(e).display==='none'||e.offsetParent===null) return false; var r=e.getBoundingClientRect(); return r.height>0&&r.top>=0&&r.bottom<=innerHeight; }
+ setInterval(function(){
+  var rb=document.getElementById('resumeGameBtn');
+  var viewing=!!window.gccViewingOpening || (rb&&rb.style.display==='block');
+  var meet=document.getElementById('gccMeet'); var covered=meet&&!meet.hidden;
+  var show=viewing&&!covered&&!onScreen('gccOpResume')&&!onScreen('resumeGameBtn');
+  if(show){ try{ fb.textContent=(window.gccT?window.gccT('▶ Resume my game'):'▶ Resume my game'); }catch(e){} }
+  fb.style.display=show?'block':'none';
+ },400);
+})();
+</script>
 </body></html>
