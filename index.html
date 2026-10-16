@@ -357,5 +357,37 @@ body.fitHome .tourRow .tourBtn{white-space:nowrap}
  try{ var mo=new MutationObserver(function(){ setTimeout(fitHome,0); }); if(sub) mo.observe(sub,{attributes:true,attributeFilter:['hidden']}); if(veil) mo.observe(veil,{attributes:true,attributeFilter:['class']}); }catch(e){}
 })();
 </script>
+<!-- Oct 16 2026: tour language drop-down. Each language is its own finished video (tour_xx.mp4), so nothing is laid over the picture. -->
+<style>
+#reelLangWrap{position:fixed;left:50%;bottom:calc(1.2vh + 52px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:47;display:none}
+#reelLangWrap.on{display:block}
+#reelLang{-webkit-appearance:none;appearance:none;height:34px;padding:0 30px 0 14px;border-radius:999px;font:700 .9rem Gelasio,Georgia,serif;color:#f3e7c4;background:rgba(35,26,16,.72) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23f3e7c4'/%3E%3C/svg%3E") no-repeat right 12px center;border:1.5px solid rgba(201,162,39,.75);max-width:62vw;cursor:pointer}
+</style>
+<div id="reelLangWrap"><select id="reelLang" aria-label="Tour language"></select></div>
+<script>
+(function(){
+ var EN='tour3d34.mp4';
+ var LANGS=[["en", "English"], ["fr", "Français"], ["ru", "Русский"]];
+ var KEY='grandpa_language_v1';
+ var v=document.getElementById('tour'), sel=document.getElementById('reelLang'), wrap=document.getElementById('reelLangWrap'), reel=document.getElementById('reel');
+ if(!v||!sel) return;
+ LANGS.forEach(function(l){ var o=document.createElement('option'); o.value=l[0]; o.textContent='🌐 '+l[1]; sel.appendChild(o); });
+ function fileFor(c){ return c==='en'?EN:('tour_'+c+'.mp4'); }
+ var cur='en'; try{ var s=localStorage.getItem(KEY); if(s&&LANGS.some(function(l){return l[0]===s;})) cur=s; }catch(e){}
+ sel.value=cur; v.src=fileFor(cur);
+ sel.addEventListener('change',function(){
+  var c=sel.value, t=v.currentTime||0, wasPlaying=!v.paused, muted=v.muted;
+  try{ localStorage.setItem(KEY,c); }catch(e){}
+  cur=c; v.muted=muted;
+  /* '#t=' tells the phone where to start, so the new language continues from the same moment */
+  v.src=fileFor(c)+(t>0.5?('#t='+t.toFixed(1)):'');
+  var go=function(){ v.removeEventListener('loadedmetadata',go); try{ if(Math.abs(v.currentTime-t)>1) v.currentTime=t; }catch(e){} };
+  v.addEventListener('loadedmetadata',go); v.load(); if(wasPlaying) v.play().catch(function(){});
+ });
+ /* show the drop-down whenever the tour frame is open */
+ setInterval(function(){ var on=reel&&reel.classList.contains('on'); wrap.classList.toggle('on',!!on); },300);
+})();
+</script>
+
 </body>
 </html>
